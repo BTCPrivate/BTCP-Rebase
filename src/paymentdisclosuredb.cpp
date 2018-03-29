@@ -2,10 +2,10 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include "paymentdisclosuredb.h"
+#include <paymentdisclosuredb.h>
 
-#include "util.h"
-#include "leveldbwrapper.h"
+#include <util.h>
+#include <dbwrapper.h>
 
 #include <boost/filesystem.hpp>
 
@@ -35,10 +35,10 @@ PaymentDisclosureDB::PaymentDisclosureDB(const boost::filesystem::path& dbPath) 
         LogPrintf("PaymentDisclosure: using custom path for database: %s\n", path.string());
     }
 
-    TryCreateDirectory(path);
+    TryCreateDirectories(path);
     options.create_if_missing = true;
     leveldb::Status status = leveldb::DB::Open(options, path.string(), &db);
-    HandleError(status); // throws exception
+    dbwrapper_private::HandleError(status); // throws exception
     LogPrintf("PaymentDisclosure: Opened LevelDB successfully\n");
 }
 
@@ -57,12 +57,12 @@ bool PaymentDisclosureDB::Put(const PaymentDisclosureKey& key, const PaymentDisc
     std::lock_guard<std::mutex> guard(lock_);
 
     CDataStream ssValue(SER_DISK, CLIENT_VERSION);
-    ssValue.reserve(ssValue.GetSerializeSize(info));
+    ssValue.reserve(GetSerializeSize(info, SER_DISK, CLIENT_VERSION));
     ssValue << info;
     leveldb::Slice slice(&ssValue[0], ssValue.size());
 
     leveldb::Status status = db->Put(writeOptions, key.ToString(), slice);
-    HandleError(status);
+    dbwrapper_private::HandleError(status);
     return true;
 }
 
@@ -80,7 +80,7 @@ bool PaymentDisclosureDB::Get(const PaymentDisclosureKey& key, PaymentDisclosure
         if (status.IsNotFound())
             return false;
         LogPrintf("PaymentDisclosure: LevelDB read failure: %s\n", status.ToString());
-        HandleError(status);
+        dbwrapper_private::HandleError(status);
     }
 
     try {

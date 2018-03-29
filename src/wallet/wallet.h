@@ -18,6 +18,7 @@
 #include <util.h>
 #include <wallet/crypter.h>
 #include <wallet/coinselection.h>
+#include <wallet/joinsplit.h>
 #include <wallet/walletdb.h>
 #include <wallet/rpcwallet.h>
 

@@ -70,6 +70,8 @@ bool error(const char* fmt, const Args&... args)
     return false;
 }
 
+const boost::filesystem::path &ZC_GetParamsDir();
+
 void PrintExceptionContinue(const std::exception *pex, const char* pszThread);
 bool FileCommit(FILE *file);
 bool TruncateFile(FILE *file, unsigned int length);
