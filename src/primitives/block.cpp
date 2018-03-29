@@ -23,6 +23,7 @@ std::string CBlock::ToString() const
         nVersion,
         hashPrevBlock.ToString(),
         hashMerkleRoot.ToString(),
+        hashReserved.ToString(),
         nTime, nBits, nNonce,
         vtx.size());
     for (const auto& tx : vtx) {

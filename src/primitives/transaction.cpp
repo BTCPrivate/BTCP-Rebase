@@ -55,7 +55,7 @@ std::string CTxOut::ToString() const
 }
 
 CMutableTransaction::CMutableTransaction() : nVersion(CTransaction::CURRENT_VERSION), nLockTime(0) {}
-CMutableTransaction::CMutableTransaction(const CTransaction& tx) : vin(tx.vin), vout(tx.vout), nVersion(tx.nVersion), nLockTime(tx.nLockTime) {}
+CMutableTransaction::CMutableTransaction(const CTransaction& tx) : vin(tx.vin), vout(tx.vout), nVersion(tx.nVersion), nLockTime(tx.nLockTime), vjoinsplit(tx.vjoinsplit), joinSplitPubKey(tx.joinSplitPubKey), joinSplitSig(tx.joinSplitSig) {}
 
 uint256 CMutableTransaction::GetHash() const
 {
@@ -76,9 +76,9 @@ uint256 CTransaction::GetWitnessHash() const
 }
 
 /* For backward compatibility, the hash is initialized to 0. TODO: remove the need for this default constructor entirely. */
-CTransaction::CTransaction() : vin(), vout(), nVersion(CTransaction::CURRENT_VERSION), nLockTime(0), hash() {}
-CTransaction::CTransaction(const CMutableTransaction &tx) : vin(tx.vin), vout(tx.vout), nVersion(tx.nVersion), nLockTime(tx.nLockTime), hash(ComputeHash()) {}
-CTransaction::CTransaction(CMutableTransaction &&tx) : vin(std::move(tx.vin)), vout(std::move(tx.vout)), nVersion(tx.nVersion), nLockTime(tx.nLockTime), hash(ComputeHash()) {}
+CTransaction::CTransaction() : vin(), vout(), nVersion(CTransaction::CURRENT_VERSION), nLockTime(0), vjoinsplit(), joinSplitPubKey(), joinSplitSig(), hash() {}
+CTransaction::CTransaction(const CMutableTransaction &tx) : vin(tx.vin), vout(tx.vout), nVersion(tx.nVersion), nLockTime(tx.nLockTime), vjoinsplit(tx.vjoinsplit), joinSplitPubKey(tx.joinSplitPubKey), joinSplitSig(tx.joinSplitSig), hash(ComputeHash()) {}
+CTransaction::CTransaction(CMutableTransaction &&tx) : vin(std::move(tx.vin)), vout(std::move(tx.vout)), nVersion(tx.nVersion), nLockTime(tx.nLockTime),  vjoinsplit(tx.vjoinsplit), joinSplitPubKey(tx.joinSplitPubKey), joinSplitSig(tx.joinSplitSig), hash(ComputeHash()) {}
 
 CAmount CTransaction::GetValueOut() const
 {
@@ -88,7 +88,31 @@ CAmount CTransaction::GetValueOut() const
         if (!MoneyRange(tx_out.nValue) || !MoneyRange(nValueOut))
             throw std::runtime_error(std::string(__func__) + ": value out of range");
     }
+
+    for (std::vector<JSDescription>::const_iterator it(vjoinsplit.begin()); it != vjoinsplit.end(); ++it)
+    {
+        // NB: vpub_old "takes" money from the value pool just as outputs do
+        nValueOut += it->vpub_old;
+
+        if (!MoneyRange(it->vpub_old) || !MoneyRange(nValueOut))
+            throw std::runtime_error("CTransaction::GetValueOut(): value out of range");
+    }
     return nValueOut;
+}
+
+CAmount CTransaction::GetJoinSplitValueIn() const
+{
+    CAmount nValue = 0;
+    for (std::vector<JSDescription>::const_iterator it(vjoinsplit.begin()); it != vjoinsplit.end(); ++it)
+    {
+        // NB: vpub_new "gives" money to the value pool just as inputs do
+        nValue += it->vpub_new;
+
+        if (!MoneyRange(it->vpub_new) || !MoneyRange(nValue))
+            throw std::runtime_error("CTransaction::GetJoinSplitValueIn(): value out of range");
+    }
+
+    return nValue;
 }
 
 unsigned int CTransaction::GetTotalSize() const

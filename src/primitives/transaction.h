@@ -12,6 +12,12 @@
 #include <serialize.h>
 #include <uint256.h>
 
+#include "primitives/joinsplit.h"
+#include "zcash/NoteEncryption.hpp"
+#include "zcash/Zcash.h"
+#include "zcash/JoinSplit.hpp"
+#include "zcash/Proof.hpp"
+
 static const int SERIALIZE_TRANSACTION_NO_WITNESS = 0x40000000;
 
 /** An outpoint - a combination of a transaction hash and an index n into its vout */
@@ -214,6 +220,13 @@ inline void UnserializeTransaction(TxType& tx, Stream& s) {
         /* We read a non-empty vin. Assume a normal vout follows. */
         s >> tx.vout;
     }
+    if(tx.nVersion >= 2) {
+        s >> tx.vjoinsplit;
+        if (tx.vjoinsplit.size() > 0) {
+            s >> tx.joinSplitPubKey;
+            s >> tx.joinSplitSig;
+        }
+    }
     if ((flags & 1) && fAllowWitness) {
         /* The witness flag is present, and we support witnesses. */
         flags ^= 1;
@@ -249,6 +262,13 @@ inline void SerializeTransaction(const TxType& tx, Stream& s) {
     }
     s << tx.vin;
     s << tx.vout;
+    if(tx.nVersion >= 2) {
+        s << tx.vjoinsplit;
+        if (tx.vjoinsplit.size() > 0) {
+            s << tx.joinSplitPubKey;
+            s << tx.joinSplitSig;
+        }
+    }
     if (flags & 1) {
         for (size_t i = 0; i < tx.vin.size(); i++) {
             s << tx.vin[i].scriptWitness.stack;
@@ -264,6 +284,8 @@ inline void SerializeTransaction(const TxType& tx, Stream& s) {
 class CTransaction
 {
 public:
+    typedef boost::array<unsigned char, 64> joinsplit_sig_t;
+
     // Default transaction version.
     static const int32_t CURRENT_VERSION=2;
 
@@ -282,6 +304,10 @@ public:
     const std::vector<CTxOut> vout;
     const int32_t nVersion;
     const uint32_t nLockTime;
+    const std::vector<JSDescription> vjoinsplit;
+    const uint256 joinSplitPubKey;
+    const joinsplit_sig_t joinSplitSig = {{0}};
+
 
 private:
     /** Memory only. */
@@ -322,6 +348,9 @@ public:
     CAmount GetValueOut() const;
     // GetValueIn() is a method on CCoinsViewCache, because
     // inputs must be known to compute value in.
+
+    // Return sum of JoinSplit vpub_new
+    CAmount GetJoinSplitValueIn() const;
 
     /**
      * Get the total transaction size in bytes, including witness data.
@@ -365,6 +394,9 @@ struct CMutableTransaction
     std::vector<CTxOut> vout;
     int32_t nVersion;
     uint32_t nLockTime;
+    std::vector<JSDescription> vjoinsplit;
+    uint256 joinSplitPubKey;
+    CTransaction::joinsplit_sig_t joinSplitSig = {{0}};
 
     CMutableTransaction();
     CMutableTransaction(const CTransaction& tx);
