@@ -1,6 +1,0 @@
-[submodule "src/libsnark"]
-	path = src/libsnark
-	url = git@github.com:scipr-lab/libsnark.git
-[submodule "src/zcash"]
-	path = src/zcash
-	url = git@github.com:zcash/zcash.git
