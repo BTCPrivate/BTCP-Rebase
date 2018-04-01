@@ -7,6 +7,20 @@
 #ifndef BTCP_PRIMITIVES_JOINSPLIT_H
 #define BTCP_PRIMITIVES_JOINSPLIT_H
 
+#include "amount.h"
+#include "random.h"
+#include "script/script.h"
+#include "serialize.h"
+#include "uint256.h"
+#include "consensus/consensus.h"
+
+#include "zcash/NoteEncryption.hpp"
+#include "zcash/Zcash.h"
+#include "zcash/JoinSplit.hpp"
+#include "zcash/Proof.hpp"
+
+#include <boost/array.hpp>
+
 class JSDescription
 {
 public:
@@ -96,7 +110,7 @@ public:
     ADD_SERIALIZE_METHODS;
 
     template <typename Stream, typename Operation>
-        inline void SerializationOp(Stream& s, Operation ser_action, int nType, int nVersion) {
+        inline void SerializationOp(Stream& s, Operation ser_action) {
         READWRITE(vpub_old);
         READWRITE(vpub_new);
         READWRITE(anchor);
