@@ -1193,6 +1193,9 @@ AC_MSG_CHECKING([if mining should be enabled])
 if test x$enable_mining != xno; then
   AC_MSG_RESULT(yes)
   AC_DEFINE(ENABLE_MINING, 1, [Define to 1 to enable mining functions])
+else
+  AC_MSG_RESULT(no)
+fi
 
 dnl enable upnp support
 AC_MSG_CHECKING([whether to build with support for UPnP])
@@ -1389,7 +1392,7 @@ if test x$need_bundled_univalue = xyes; then
 fi
 
 ac_configure_args="${ac_configure_args} --disable-shared --with-pic --with-bignum=no --enable-module-recovery --disable-jni"
-AC_CONFIG_SUBDIRS([src/secp256k1 src/snark src/univalue])
+AC_CONFIG_SUBDIRS([src/secp256k1 src/snark])
 
 AC_OUTPUT
 
