@@ -8,6 +8,7 @@ define(_CLIENT_VERSION_IS_RELEASE, false)
 define(_COPYRIGHT_YEAR, 2018)
 define(_COPYRIGHT_HOLDERS,[The %s developers])
 define(_COPYRIGHT_HOLDERS_SUBSTITUTION,[[Bitcoin Core]])
+define(_ZC_BUILD_VAL, m4_if(m4_eval(_CLIENT_VERSION_BUILD < 25), 1, m4_incr(_CLIENT_VERSION_BUILD), m4_eval(_CLIENT_VERSION_BUILD < 50), 1, m4_eval(_CLIENT_VERSION_BUILD - 24), m4_eval(_CLIENT_VERSION_BUILD == 50), 1, , m4_eval(_CLIENT_VERSION_BUILD - 50)))
 AC_INIT([Bitcoin Core],[_CLIENT_VERSION_MAJOR._CLIENT_VERSION_MINOR._CLIENT_VERSION_REVISION],[https://github.com/bitcoin/bitcoin/issues],[bitcoin],[https://bitcoincore.org/])
 AC_CONFIG_SRCDIR([src/validation.cpp])
 AC_CONFIG_HEADERS([src/config/bitcoin-config.h])
@@ -107,6 +108,12 @@ AC_ARG_ENABLE([wallet],
   [disable wallet (enabled by default)])],
   [enable_wallet=$enableval],
   [enable_wallet=yes])
+
+AC_ARG_ENABLE([mining],
+  [AS_HELP_STRING([--enable-mining],
+  [enable mining (default is yes)])],
+  [enable_mining=$enableval],
+  [enable_mining=yes])
 
 AC_ARG_WITH([miniupnpc],
   [AS_HELP_STRING([--with-miniupnpc],
@@ -219,6 +226,12 @@ AC_ARG_ENABLE([debug],
     [enable_debug=$enableval],
     [enable_debug=no])
 
+# Enable different -fsanitize options
+AC_ARG_WITH([sanitizers],
+    [AS_HELP_STRING([--with-sanitizers],
+                    [comma separated list of extra sanitizers to build with (default is none enabled)])],
+    [use_sanitizers=$withval])
+
 # Enable gprof profiling
 AC_ARG_ENABLE([gprof],
     [AS_HELP_STRING([--enable-gprof],
@@ -245,6 +258,26 @@ if test "x$enable_debug" = xyes; then
     if test "x$GXX" = xyes; then
         CXXFLAGS="$CXXFLAGS -g3 -O0"
     fi
+fi
+
+if test x$use_sanitizers != x; then
+  # First check if the compiler accepts flags. If an incompatible pair like
+  # -fsanitize=address,thread is used here, this check will fail. This will also
+  # fail if a bad argument is passed, e.g. -fsanitize=undfeined
+  AX_CHECK_COMPILE_FLAG(
+    [[-fsanitize=$use_sanitizers]],
+    [[SANITIZER_CXXFLAGS=-fsanitize=$use_sanitizers]],
+    [AC_MSG_ERROR([compiler did not accept requested flags])])
+
+  # Some compilers (e.g. GCC) require additional libraries like libasan,
+  # libtsan, libubsan, etc. Make sure linking still works with the sanitize
+  # flag. This is a separate check so we can give a better error message when
+  # the sanitize flags are supported by the compiler but the actual sanitizer
+  # libs are missing.
+  AX_CHECK_LINK_FLAG(
+    [[-fsanitize=$use_sanitizers]],
+    [[SANITIZER_LDFLAGS=-fsanitize=$use_sanitizers]],
+    [AC_MSG_ERROR([linker did not accept requested flags, you are missing required libraries])])
 fi
 
 ERROR_CXXFLAGS=
@@ -394,9 +427,9 @@ case $host in
          dnl add default macports paths
          CPPFLAGS="$CPPFLAGS -isystem /opt/local/include"
          LIBS="$LIBS -L/opt/local/lib"
-         if test -d /opt/local/include/db48; then
-           CPPFLAGS="$CPPFLAGS -I/opt/local/include/db48"
-           LIBS="$LIBS -L/opt/local/lib/db48"
+         if test -d /opt/local/include/db62; then
+           CPPFLAGS="$CPPFLAGS -I/opt/local/include/db62"
+           LIBS="$LIBS -L/opt/local/lib/db62"
          fi
        fi
 
@@ -748,7 +781,7 @@ AC_SUBST(LIBMEMENV)
 
 if test x$enable_wallet != xno; then
     dnl Check for libdb_cxx only if wallet enabled
-    BITCOIN_FIND_BDB48
+    BITCOIN_FIND_BDB62
 fi
 
 dnl Check for libminiupnpc (optional)
@@ -774,7 +807,7 @@ fi
 if test x$use_boost = xyes; then
 
 dnl Minimum required Boost version
-define(MINIMUM_REQUIRED_BOOST, 1.47.0)
+define(MINIMUM_REQUIRED_BOOST, 1.62)
 
 dnl Check for boost libs
 AX_BOOST_BASE([MINIMUM_REQUIRED_BOOST])
@@ -1072,6 +1105,40 @@ AM_CONDITIONAL([EMBEDDED_UNIVALUE],[test x$need_bundled_univalue = xyes])
 AC_SUBST(UNIVALUE_CFLAGS)
 AC_SUBST(UNIVALUE_LIBS)
 
+# These packages don't provide pkgconfig config files across all
+# platforms, so we use older autoconf detection mechanisms:
+AC_CHECK_HEADER([gmp.h],,AC_MSG_ERROR(libgmp headers missing))
+AC_CHECK_LIB([gmp],[[__gmpn_sub_n]],GMP_LIBS=-lgmp, [AC_MSG_ERROR(libgmp missing)])
+
+AC_CHECK_HEADER([gmpxx.h],,AC_MSG_ERROR(libgmpxx headers missing))
+AC_CHECK_LIB([gmpxx],[main],GMPXX_LIBS=-lgmpxx, [AC_MSG_ERROR(libgmpxx missing)])
+
+RUST_LIBS="-lrustzcash"
+
+dnl Check for OpenMP support
+AX_OPENMP(
+  [AC_DEFINE(HAVE_OPENMP, 1, [Define if OpenMP is enabled])
+   AM_CONDITIONAL([HAVE_OPENMP], [true])
+   CXXFLAGS="$CXXFLAGS $OPENMP_CXXFLAGS"],
+  [AC_MSG_WARN([OpenMP not supported, disabling multithreading])
+   AC_DEFINE(HAVE_OPENMP, 0, [Define if OpenMP is enabled])
+   AM_CONDITIONAL([HAVE_OPENMP], [false])])
+
+# Gitian uses a config.site that sets depends_prefix, and then sets --prefix=/
+# build.sh just uses --prefix
+if test x$depends_prefix != x; then
+  LIBSNARK_DEPINST="$depends_prefix"
+else
+  LIBSNARK_DEPINST="$prefix"
+fi
+
+# Additional Zcash flags
+AX_CHECK_COMPILE_FLAG([-fwrapv],[CXXFLAGS="$CXXFLAGS -fwrapv"])
+AX_CHECK_COMPILE_FLAG([-fno-strict-aliasing],[CXXFLAGS="$CXXFLAGS -fno-strict-aliasing"])
+AX_CHECK_COMPILE_FLAG([-Wno-builtin-declaration-mismatch],[CXXFLAGS="$CXXFLAGS -Wno-builtin-declaration-mismatch"],,[[$CXXFLAG_WERROR]])
+
+LIBZCASH_LIBS="-lgmp -lgmpxx $BOOST_SYSTEM_LIB -lcrypto -lsodium $RUST_LIBS"
+
 BITCOIN_QT_PATH_PROGS([PROTOC], [protoc],$protoc_bin_path)
 
 AC_MSG_CHECKING([whether to build bitcoind])
@@ -1120,6 +1187,12 @@ if test x$enable_wallet != xno; then
 else
   AC_MSG_RESULT(no)
 fi
+
+dnl enable mining
+AC_MSG_CHECKING([if mining should be enabled])
+if test x$enable_mining != xno; then
+  AC_MSG_RESULT(yes)
+  AC_DEFINE(ENABLE_MINING, 1, [Define to 1 to enable mining functions])
 
 dnl enable upnp support
 AC_MSG_CHECKING([whether to build with support for UPnP])
@@ -1214,6 +1287,7 @@ AM_CONDITIONAL([TARGET_DARWIN], [test x$TARGET_OS = xdarwin])
 AM_CONDITIONAL([BUILD_DARWIN], [test x$BUILD_OS = xdarwin])
 AM_CONDITIONAL([TARGET_WINDOWS], [test x$TARGET_OS = xwindows])
 AM_CONDITIONAL([ENABLE_WALLET],[test x$enable_wallet = xyes])
+AM_CONDITIONAL([ENABLE_MINING],[test x$enable_mining = xyes])
 AM_CONDITIONAL([ENABLE_TESTS],[test x$BUILD_TEST = xyes])
 AM_CONDITIONAL([ENABLE_QT],[test x$bitcoin_enable_qt = xyes])
 AM_CONDITIONAL([ENABLE_QT_TESTS],[test x$BUILD_TEST_QT = xyes])
@@ -1258,6 +1332,8 @@ AC_SUBST(HARDENED_CPPFLAGS)
 AC_SUBST(HARDENED_LDFLAGS)
 AC_SUBST(PIC_FLAGS)
 AC_SUBST(PIE_FLAGS)
+AC_SUBST(SANITIZER_CXXFLAGS)
+AC_SUBST(SANITIZER_LDFLAGS)
 AC_SUBST(SSE42_CXXFLAGS)
 AC_SUBST(LIBTOOL_APP_LDFLAGS)
 AC_SUBST(USE_UPNP)
@@ -1274,6 +1350,10 @@ AC_SUBST(EVENT_PTHREADS_LIBS)
 AC_SUBST(ZMQ_LIBS)
 AC_SUBST(PROTOBUF_LIBS)
 AC_SUBST(QR_LIBS)
+AC_SUBST(GMP_LIBS)
+AC_SUBST(GMPXX_LIBS)
+AC_SUBST(LIBSNARK_DEPINST)
+AC_SUBST(LIBZCASH_LIBS)
 AC_CONFIG_FILES([Makefile src/Makefile doc/man/Makefile share/setup.nsi share/qt/Info.plist test/config.ini])
 AC_CONFIG_FILES([contrib/devtools/split-debug.sh],[chmod +x contrib/devtools/split-debug.sh])
 AM_COND_IF([HAVE_DOXYGEN], [AC_CONFIG_FILES([doc/Doxyfile])])
@@ -1309,7 +1389,7 @@ if test x$need_bundled_univalue = xyes; then
 fi
 
 ac_configure_args="${ac_configure_args} --disable-shared --with-pic --with-bignum=no --enable-module-recovery --disable-jni"
-AC_CONFIG_SUBDIRS([src/secp256k1])
+AC_CONFIG_SUBDIRS([src/secp256k1 src/snark src/univalue])
 
 AC_OUTPUT
 
