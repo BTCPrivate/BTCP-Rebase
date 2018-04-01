@@ -116,3 +116,6 @@ test/cache/*
 
 libbitcoinconsensus.pc
 contrib/devtools/split-debug.sh
+
+src/zcash/CreateJoinSplit
+src/zcash/GenerateParams
