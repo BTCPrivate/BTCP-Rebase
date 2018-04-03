@@ -17,7 +17,7 @@ enum DeploymentPos
 {
     DEPLOYMENT_TESTDUMMY,
     DEPLOYMENT_CSV, // Deployment of BIP68, BIP112, and BIP113.
-    DEPLOYMENT_SEGWIT, // Deployment of BIP141, BIP143, and BIP147.
+    DEPLOYMENT_SEGWIT = DEPLOYMENT_CSV, // Deployment of BIP141, BIP143, and BIP147.
     // NOTE: Also add new deployments to VersionBitsDeploymentInfo in versionbits.cpp
     MAX_VERSION_BITS_DEPLOYMENTS
 };
@@ -53,7 +53,6 @@ struct Params {
     uint256 BIP16Exception;
     /** Block height and hash at which BIP34 becomes active */
     int BIP34Height;
-    uint256 BIP34Hash;
     /** Block height at which BIP65 becomes active */
     int BIP65Height;
     /** Block height at which BIP66 becomes active */
@@ -68,13 +67,27 @@ struct Params {
     BIP9Deployment vDeployments[MAX_VERSION_BITS_DEPLOYMENTS];
     /** Proof of work parameters */
     uint256 powLimit;
+    uint256 prePowLimit;
     bool fPowAllowMinDifficultyBlocks;
     bool fPowNoRetargeting;
+
+    int64_t nPowAveragingWindow;
+    int64_t nPowMaxAdjustDown;
+    int64_t nPowMaxAdjustUp;
+
     int64_t nPowTargetSpacing;
     int64_t nPowTargetTimespan;
     int64_t DifficultyAdjustmentInterval() const { return nPowTargetTimespan / nPowTargetSpacing; }
     uint256 nMinimumChainWork;
     uint256 defaultAssumeValid;
+
+    int nPowDifficultyBombHeight;
+
+    int64_t AveragingWindowTimespan(bool isFork = false) const { return nPowAveragingWindow * nPowTargetSpacing / (isFork ? 20 : 1); }
+    int64_t MinActualTimespan(bool isFork = false) const { return (AveragingWindowTimespan(isFork) * (100 - nPowMaxAdjustUp  )) / 100; }
+    int64_t MaxActualTimespan(bool isFork = false) const { return (AveragingWindowTimespan(isFork) * (100 + nPowMaxAdjustDown)) / 100; }
+
+    bool fCoinbaseMustBeProtected;
 };
 } // namespace Consensus
 
