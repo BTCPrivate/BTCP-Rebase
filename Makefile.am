@@ -86,7 +86,7 @@ $(OSX_APP)/Contents/PkgInfo:
 
 $(OSX_APP)/Contents/Resources/empty.lproj:
 	$(MKDIR_P) $(@D)
-	@touch $@ 
+	@touch $@
 
 $(OSX_APP)/Contents/Info.plist: $(OSX_PLIST)
 	$(MKDIR_P) $(@D)
@@ -242,7 +242,7 @@ cov: test_bitcoin.coverage/.dirstamp cov-zcash total.coverage/.dirstamp
 
 endif
 
-dist_bin_SCRIPTS = zcutil/fetch-params.sh
+dist_bin_SCRIPTS = #zcutil/fetch-params.sh
 dist_noinst_SCRIPTS = autogen.sh
 
 EXTRA_DIST = $(DIST_SHARE) test/functional/test_runner.py test/functional test/zcash $(DIST_CONTRIB) $(DIST_DOCS) $(WINDOWS_PACKAGING) $(OSX_PACKAGING) $(BIN_CHECKS)
@@ -326,4 +326,3 @@ clean-docs:
 clean-local: clean-docs
 	rm -rf coverage_percent.txt test_bitcoin.coverage/ zcash-gtest.coverage/ total.coverage/ test/tmp/ cache/ $(OSX_APP)
 	rm -rf test/functional/__pycache__ test/functional/test_framework/__pycache__ test/cache
-

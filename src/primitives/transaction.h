@@ -12,11 +12,11 @@
 #include <serialize.h>
 #include <uint256.h>
 
-#include "primitives/joinsplit.h"
-#include "zcash/NoteEncryption.hpp"
-#include "zcash/Zcash.h"
-#include "zcash/JoinSplit.hpp"
-#include "zcash/Proof.hpp"
+#include <primitives/joinsplit.h>
+#include <zcash/NoteEncryption.hpp>
+#include <zcash/Zcash.h>
+#include <zcash/JoinSplit.hpp>
+#include <zcash/Proof.hpp>
 
 static const int SERIALIZE_TRANSACTION_NO_WITNESS = 0x40000000;
 

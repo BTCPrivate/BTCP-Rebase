@@ -5,13 +5,13 @@
 #ifndef ASYNCRPCOPERATION_SHIELDCOINBASE_H
 #define ASYNCRPCOPERATION_SHIELDCOINBASE_H
 
-#include "asyncrpcoperation.h"
-#include "amount.h"
-#include "base58.h"
-#include "primitives/transaction.h"
-#include "zcash/JoinSplit.hpp"
-#include "zcash/Address.hpp"
-#include "wallet.h"
+#include <asyncrpcoperation.h>
+#include <amount.h>
+#include <base58.h>
+#include <primitives/transaction.h>
+#include <zcash/JoinSplit.hpp>
+#include <zcash/Address.hpp>
+#include <wallet.h>
 
 #include <unordered_map>
 #include <tuple>
@@ -126,4 +126,3 @@ public:
 
 
 #endif /* ASYNCRPCOPERATION_SHIELDCOINBASE_H */
-

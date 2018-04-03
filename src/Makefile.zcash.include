@@ -24,5 +24,6 @@ zcash_CreateJoinSplit_LDADD = \
   $(LIBSNARK) \
   $(LIBBITCOIN_UTIL) \
   $(LIBBITCOIN_CRYPTO) \
+  $(LIBBITCOIN_CONSENSUS) \
   $(BOOST_LIBS) \
   $(LIBZCASH_LIBS)

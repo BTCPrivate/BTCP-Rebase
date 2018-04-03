@@ -209,6 +209,7 @@ BITCOIN_CORE_H = \
   wallet/walletutil.h \
   wallet/coinselection.h \
   warnings.h \
+  zkaddr.h \
   zmq/zmqabstractnotifier.h \
   zmq/zmqconfig.h\
   zmq/zmqnotificationinterface.h \
@@ -360,6 +361,8 @@ libbitcoin_consensus_a_SOURCES = \
   prevector.h \
   primitives/block.cpp \
   primitives/block.h \
+  primitives/joinsplit.h \
+  primitives/joinsplit.cpp \
   primitives/transaction.cpp \
   primitives/transaction.h \
   pubkey.cpp \
@@ -403,6 +406,7 @@ libbitcoin_common_a_SOURCES = \
   script/sign.cpp \
   script/standard.cpp \
   warnings.cpp \
+  zkaddr.cpp \
   $(BITCOIN_CORE_H)
 
 # util: shared between all executables.
@@ -540,7 +544,7 @@ libzcash_a_CPPFLAGS = -DMULTICORE -fopenmp -fPIC -DBINARY_OUTPUT -DCURVE_ALT_BN1
 
 libzcash_a_CXXFLAGS = $(SAN_CXXFLAGS) $(HARDENED_CXXFLAGS) -fwrapv -fno-strict-aliasing
 
-libzcash_a_LIBADD = $(SAN_LDFLAGS) $(HARDENED_LDFLAGS)
+libzcash_a_LDFLAGS = $(SAN_LDFLAGS) $(HARDENED_LDFLAGS)
 
 libzcash_a_CPPFLAGS += -DMONTGOMERY_OUTPUT
 
@@ -628,7 +632,7 @@ endif
 
 if ENABLE_TESTS
 include Makefile.test.include
-include Makefile.gtest.include
+#include Makefile.gtest.include
 endif
 
 if ENABLE_BENCH
