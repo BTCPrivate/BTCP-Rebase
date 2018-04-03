@@ -27,7 +27,7 @@ public:
     uint256 hashReserved;
     uint32_t nTime;
     uint32_t nBits;
-    uint32_t nNonce;
+    uint256 nNonce;
     std::vector<unsigned char> nSolution;
 
     CBlockHeader()
@@ -57,7 +57,7 @@ public:
         hashReserved.SetNull();
         nTime = 0;
         nBits = 0;
-        nNonce = 0;
+        nNonce = uint256();
         nSolution.clear();
     }
 
