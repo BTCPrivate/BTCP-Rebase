@@ -68,13 +68,27 @@ struct Params {
     BIP9Deployment vDeployments[MAX_VERSION_BITS_DEPLOYMENTS];
     /** Proof of work parameters */
     uint256 powLimit;
+    uint256 prePowLimit;
     bool fPowAllowMinDifficultyBlocks;
     bool fPowNoRetargeting;
+
+    int64_t nPowAveragingWindow;
+    int64_t nPowMaxAdjustDown;
+    int64_t nPowMaxAdjustUp;
+
     int64_t nPowTargetSpacing;
     int64_t nPowTargetTimespan;
     int64_t DifficultyAdjustmentInterval() const { return nPowTargetTimespan / nPowTargetSpacing; }
     uint256 nMinimumChainWork;
     uint256 defaultAssumeValid;
+
+    int nPowDifficultyBombHeight;
+
+    int64_t AveragingWindowTimespan(bool isFork = false) const { return nPowAveragingWindow * nPowTargetSpacing / (isFork ? 20 : 1); }
+    int64_t MinActualTimespan(bool isFork = false) const { return (AveragingWindowTimespan(isFork) * (100 - nPowMaxAdjustUp  )) / 100; }
+    int64_t MaxActualTimespan(bool isFork = false) const { return (AveragingWindowTimespan(isFork) * (100 + nPowMaxAdjustDown)) / 100; }
+
+    bool fCoinbaseMustBeProtected;
 };
 } // namespace Consensus
 

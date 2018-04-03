@@ -702,6 +702,12 @@ void ThreadImport(std::vector<fs::path> vImportFiles)
  */
 bool InitSanityCheck(void)
 {
+    // Initialize libsodium
+    if (init_and_check_sodium() == -1) {
+        InitError("Sodium sanity check failure. Aborting.");
+        return false;
+    }
+
     if(!ECC_InitSanityCheck()) {
         InitError("Elliptic curve cryptography sanity check failure. Aborting.");
         return false;

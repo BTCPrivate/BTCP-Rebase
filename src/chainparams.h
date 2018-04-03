@@ -48,6 +48,10 @@ public:
         EXT_PUBLIC_KEY,
         EXT_SECRET_KEY,
 
+        ZCPAYMENT_ADDRRESS,
+        ZCSPENDING_KEY,
+        ZCVIEWING_KEY,
+
         MAX_BASE58_TYPES
     };
 
@@ -75,6 +79,15 @@ public:
     const CCheckpointData& Checkpoints() const { return checkpointData; }
     const ChainTxData& TxData() const { return chainTxData; }
     void UpdateVersionBitsParameters(Consensus::DeploymentPos d, int64_t nStartTime, int64_t nTimeout);
+
+    /** Enforce coinbase consensus rule in regtest mode */
+    void SetRegTestCoinbaseMustBeProtected() { consensus.fCoinbaseMustBeProtected = true; }
+
+    unsigned int EquihashN() const { return nEquihashN; }
+    unsigned int EquihashK() const { return nEquihashK; }
+
+    uint64_t ForkStartHeight() const { return nForkStartHeight; };
+    uint64_t ForkHeightRange() const { return nForkHeightRange; };
 protected:
     CChainParams() {}
 
@@ -94,6 +107,12 @@ protected:
     CCheckpointData checkpointData;
     ChainTxData chainTxData;
     bool m_fallback_fee_enabled;
+
+    unsigned int nEquihashN = 0;
+    unsigned int nEquihashK = 0;
+
+    uint64_t nForkStartHeight;
+    uint64_t nForkHeightRange;
 };
 
 /**
