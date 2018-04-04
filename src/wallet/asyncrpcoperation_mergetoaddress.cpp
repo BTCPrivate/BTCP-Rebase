@@ -2,27 +2,27 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include "asyncrpcoperation_mergetoaddress.h"
+#include <wallet/asyncrpcoperation_mergetoaddress.h>
 
-#include "amount.h"
-#include "asyncrpcqueue.h"
-#include "core_io.h"
-#include "init.h"
-#include "main.h"
-#include "miner.h"
-#include "net.h"
-#include "netbase.h"
-#include "rpcprotocol.h"
-#include "rpcserver.h"
-#include "script/interpreter.h"
-#include "sodium.h"
-#include "timedata.h"
-#include "util.h"
-#include "utilmoneystr.h"
-#include "utiltime.h"
-#include "wallet.h"
-#include "walletdb.h"
-#include "zcash/IncrementalMerkleTree.hpp"
+#include <amount.h>
+#include <asyncrpcqueue.h>
+#include <core_io.h>
+#include <init.h>
+#include <validation.h>
+#include <miner.h>
+#include <net.h>
+#include <netbase.h>
+#include <rpc/protocol.h>
+#include <rpc/server.h>
+#include <script/interpreter.h>
+#include <sodium.h>
+#include <timedata.h>
+#include <util.h>
+#include <utilmoneystr.h>
+#include <utiltime.h>
+#include <wallet/wallet.h>
+#include <wallet/walletdb.h>
+#include <zcash/IncrementalMerkleTree.hpp>
 
 #include <chrono>
 #include <iostream>
