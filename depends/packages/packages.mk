@@ -1,4 +1,10 @@
-packages:=boost openssl libevent zeromq
+rust_crates := crate_libc
+rust_packages := rust $(rust_crates) librustzcash
+proton_packages := proton
+zcash_packages := libgmp libsodium
+native_packages := native_ccache
+
+packages:=boost openssl libevent zeromq $(zcash_packages) googletest
 
 qt_native_packages = native_protobuf
 qt_packages = qrencode protobuf zlib

@@ -6,6 +6,7 @@ SDK_PATH ?= $(BASEDIR)/SDKs
 NO_QT ?=
 NO_WALLET ?=
 NO_UPNP ?=
+PRIORITY_DOWNLOAD_PATH ?= https://z.cash/depends-sources
 FALLBACK_DOWNLOAD_PATH ?= https://bitcoincore.org/depends-sources
 
 BUILD = $(shell ./config.guess)
@@ -15,12 +16,14 @@ BASEDIR = $(CURDIR)
 HASH_LENGTH:=11
 DOWNLOAD_CONNECT_TIMEOUT:=10
 DOWNLOAD_RETRIES:=3
+CRATE_REGISTRY:=vendored-sources
 HOST_ID_SALT ?= salt
 BUILD_ID_SALT ?= salt
 
 host:=$(BUILD)
 ifneq ($(HOST),)
 host:=$(HOST)
+host_toolchain:=$(HOST)-
 endif
 
 ifneq ($(DEBUG),)
@@ -92,7 +95,7 @@ qt_packages_$(NO_QT) = $(qt_packages) $(qt_$(host_os)_packages) $(qt_$(host_arch
 wallet_packages_$(NO_WALLET) = $(wallet_packages)
 upnp_packages_$(NO_UPNP) = $(upnp_packages)
 
-packages += $($(host_arch)_$(host_os)_packages) $($(host_os)_packages) $(qt_packages_) $(wallet_packages_) $(upnp_packages_)
+packages += $($(host_arch)_$(host_os)_packages) $($(host_os)_packages) $(rust_packages) $(qt_packages_) $(wallet_packages_) $(upnp_packages_)
 native_packages += $($(host_arch)_$(host_os)_native_packages) $($(host_os)_native_packages)
 
 ifneq ($(qt_packages_),)
@@ -101,7 +104,7 @@ endif
 
 all_packages = $(packages) $(native_packages)
 
-meta_depends = Makefile funcs.mk builders/default.mk hosts/default.mk hosts/$(host_os).mk builders/$(build_os).mk
+meta_depends = Makefile funcs.mk builders/default.mk hosts/default.mk hosts/$(host_os).mk builders/$(build_os).mk cargo-checksum.sh
 
 $(host_arch)_$(host_os)_native_toolchain?=$($(host_os)_native_toolchain)
 
