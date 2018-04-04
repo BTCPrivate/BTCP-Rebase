@@ -1,12 +1,12 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
-#include "clientversion.h"
-#include "deprecation.h"
-#include "init.h"
-#include "ui_interface.h"
-#include "util.h"
-#include "chainparams.h"
+#include <clientversion.h>
+#include <deprecation.h>
+#include <init.h>
+#include <ui_interface.h>
+#include <util.h>
+#include <chainparams.h>
 
 using ::testing::StrictMock;
 

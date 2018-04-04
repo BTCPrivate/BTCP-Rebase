@@ -1,12 +1,12 @@
 #if defined(HAVE_CONFIG_H)
-#include "config/bitcoin-config.h"
+#include <config/bitcoin-config.h>
 #endif
 
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
 
-#include "crypto/equihash.h"
-#include "uint256.h"
+#include <crypto/equihash.h>
+#include <uint256.h>
 
 void TestExpandAndCompress(const std::string &scope, size_t bit_len, size_t byte_pad,
                            std::vector<unsigned char> compact,

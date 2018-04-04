@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include "random.h"
+#include <random.h>
 
 extern int GenZero(int n);
 extern int GenMax(int n);

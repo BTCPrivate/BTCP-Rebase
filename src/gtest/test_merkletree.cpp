@@ -1,23 +1,23 @@
 #include <gtest/gtest.h>
 
-#include "test/data/merkle_roots.json.h"
-#include "test/data/merkle_roots_empty.json.h"
-#include "test/data/merkle_serialization.json.h"
-#include "test/data/merkle_witness_serialization.json.h"
-#include "test/data/merkle_path.json.h"
-#include "test/data/merkle_commitments.json.h"
+#include <test/data/merkle_roots.json.h>
+#include <test/data/merkle_roots_empty.json.h>
+#include <test/data/merkle_serialization.json.h>
+#include <test/data/merkle_witness_serialization.json.h>
+#include <test/data/merkle_path.json.h>
+#include <test/data/merkle_commitments.json.h>
 
 #include <iostream>
 
 #include <stdexcept>
 
-#include "utilstrencodings.h"
-#include "version.h"
-#include "serialize.h"
-#include "streams.h"
+#include <utilstrencodings.h>
+#include <version.h>
+#include <serialize.h>
+#include <streams.h>
 
-#include "zcash/IncrementalMerkleTree.hpp"
-#include "zcash/util.h"
+#include <zcash/IncrementalMerkleTree.hpp>
+#include <zcash/util.h>
 
 #include <libsnark/common/default_types/r1cs_ppzksnark_pp.hpp>
 #include <libsnark/zk_proof_systems/ppzksnark/r1cs_ppzksnark/r1cs_ppzksnark.hpp>
@@ -26,7 +26,7 @@
 
 #include <boost/foreach.hpp>
 
-#include "json_test_vectors.h"
+#include <json_test_vectors.h>
 
 using namespace std;
 using namespace libsnark;

@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include "zcash/Proof.hpp"
+#include <zcash/Proof.hpp>
 
 #include <iostream>
 
@@ -17,9 +17,9 @@ typedef libsnark::default_r1cs_ppzksnark_pp::Fp_type curve_Fr;
 typedef libsnark::default_r1cs_ppzksnark_pp::Fq_type curve_Fq;
 typedef libsnark::default_r1cs_ppzksnark_pp::Fqe_type curve_Fq2;
 
-#include "streams.h"
-#include "version.h"
-#include "utilstrencodings.h"
+#include <streams.h>
+#include <version.h>
+#include <utilstrencodings.h>
 
 TEST(proofs, g1_pairing_at_infinity)
 {
@@ -668,8 +668,8 @@ TEST(proofs, g2_deserialization)
     }
 }
 
-#include "json_test_vectors.h"
-#include "test/data/g1_compressed.json.h"
+#include <json_test_vectors.h>
+#include <test/data/g1_compressed.json.h>
 
 TEST(proofs, g1_test_vectors)
 {
@@ -685,7 +685,7 @@ TEST(proofs, g1_test_vectors)
     }
 }
 
-#include "test/data/g2_compressed.json.h"
+#include <test/data/g2_compressed.json.h>
 
 TEST(proofs, g2_test_vectors)
 {

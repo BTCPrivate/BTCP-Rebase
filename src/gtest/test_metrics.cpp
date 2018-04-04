@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 
-#include "metrics.h"
-#include "utiltime.h"
+#include <metrics.h>
+#include <utiltime.h>
 
 
 TEST(Metrics, AtomicTimer) {

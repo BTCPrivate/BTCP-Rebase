@@ -2,9 +2,9 @@
 #include <gmock/gmock.h>
 #include <sodium.h>
 
-#include "main.h"
-#include "primitives/transaction.h"
-#include "consensus/validation.h"
+#include <validation.h>
+#include <primitives/transaction.h>
+#include <consensus/validation.h>
 
 TEST(checktransaction_tests, check_vpub_not_both_nonzero) {
     CMutableTransaction tx;
@@ -54,7 +54,7 @@ CMutableTransaction GetValidTransaction() {
     mtx.vin[1].prevout.hash = uint256S("0000000000000000000000000000000000000000000000000000000000000002");
     mtx.vin[1].prevout.n = 0;
     mtx.vout.resize(2);
-    // mtx.vout[0].scriptPubKey = 
+    // mtx.vout[0].scriptPubKey =
     mtx.vout[0].nValue = 0;
     mtx.vout[1].nValue = 0;
     mtx.vjoinsplit.resize(2);

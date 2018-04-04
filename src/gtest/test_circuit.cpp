@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
-#include "uint256.h"
+#include <uint256.h>
 
-#include "zcash/util.h"
+#include <zcash/util.h>
 
 #include <boost/foreach.hpp>
 #include <boost/format.hpp>
@@ -12,13 +12,13 @@
 #include <libsnark/gadgetlib1/gadgets/hashes/sha256/sha256_gadget.hpp>
 #include <libsnark/gadgetlib1/gadgets/merkle_tree/merkle_tree_check_read_gadget.hpp>
 
-#include "zcash/IncrementalMerkleTree.hpp"
+#include <zcash/IncrementalMerkleTree.hpp>
 
 using namespace libsnark;
 using namespace libzcash;
 
-#include "zcash/circuit/utils.tcc"
-#include "zcash/circuit/merkle.tcc"
+#include <zcash/circuit/utils.tcc>
+#include <zcash/circuit/merkle.tcc>
 
 template<typename FieldT>
 void test_value_equals(uint64_t i) {

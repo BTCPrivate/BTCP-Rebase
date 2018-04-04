@@ -29,7 +29,7 @@
 #include <thread>
 #include <string>
 
-#include "paymentdisclosuredb.h"
+#include <wallet/paymentdisclosuredb.h>
 
 using namespace libzcash;
 
@@ -509,7 +509,7 @@ bool AsyncRPCOperation_sendmany::main_impl() {
     }
 
     // Keep track of treestate within this transaction
-    boost::unordered_map<uint256, ZCIncrementalMerkleTree, CCoinsKeyHasher> intermediates;
+    std::unordered_map<uint256, ZCIncrementalMerkleTree, CCoinsKeyHasher> intermediates;
     std::vector<uint256> previousCommitments;
 
     while (!vpubNewProcessed) {
@@ -973,12 +973,12 @@ UniValue AsyncRPCOperation_sendmany::perform_joinsplit(
             );
 
     // Generate the proof, this can take over a minute.
-    boost::array<libzcash::JSInput, ZC_NUM_JS_INPUTS> inputs
+    std::array<libzcash::JSInput, ZC_NUM_JS_INPUTS> inputs
             {info.vjsin[0], info.vjsin[1]};
-    boost::array<libzcash::JSOutput, ZC_NUM_JS_OUTPUTS> outputs
+    std::array<libzcash::JSOutput, ZC_NUM_JS_OUTPUTS> outputs
             {info.vjsout[0], info.vjsout[1]};
-    boost::array<size_t, ZC_NUM_JS_INPUTS> inputMap;
-    boost::array<size_t, ZC_NUM_JS_OUTPUTS> outputMap;
+    std::array<size_t, ZC_NUM_JS_INPUTS> inputMap;
+    std::array<size_t, ZC_NUM_JS_OUTPUTS> outputMap;
 
     uint256 esk; // payment disclosure - secret
 
@@ -1134,8 +1134,8 @@ void AsyncRPCOperation_sendmany::add_taddr_change_output_to_tx(CAmount amount) {
     tx_ = CTransaction(rawTx);
 }
 
-boost::array<unsigned char, ZC_MEMO_SIZE> AsyncRPCOperation_sendmany::get_memo_from_hex_string(std::string s) {
-    boost::array<unsigned char, ZC_MEMO_SIZE> memo = {{0x00}};
+std::array<unsigned char, ZC_MEMO_SIZE> AsyncRPCOperation_sendmany::get_memo_from_hex_string(std::string s) {
+    std::array<unsigned char, ZC_MEMO_SIZE> memo = {{0x00}};
 
     std::vector<unsigned char> rawMemo = ParseHex(s.c_str());
 

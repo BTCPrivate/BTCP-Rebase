@@ -1,9 +1,9 @@
 #include <gtest/gtest.h>
 
-#include "chain.h"
-#include "chainparams.h"
-#include "pow.h"
-#include "random.h"
+#include <chain.h>
+#include <chainparams.h>
+#include <pow.h>
+#include <random.h>
 
 TEST(PoW, DifficultyAveraging) {
     SelectParams(CBaseChainParams::MAIN);

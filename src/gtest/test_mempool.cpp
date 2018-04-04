@@ -1,14 +1,14 @@
 #include <gtest/gtest.h>
 #include <gtest/gtest-spi.h>
 
-#include "consensus/upgrades.h"
-#include "consensus/validation.h"
-#include "core_io.h"
-#include "main.h"
-#include "primitives/transaction.h"
-#include "txmempool.h"
-#include "policy/fees.h"
-#include "util.h"
+#include <consensus/upgrades.h>
+#include <consensus/validation.h>
+#include <core_io.h>
+#include <main.h>
+#include <primitives/transaction.h>
+#include <txmempool.h>
+#include <policy/fees.h>
+#include <util.h>
 
 // Implementation is in test_checktransaction.cpp
 extern CMutableTransaction GetValidTransaction();

@@ -1,8 +1,8 @@
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
 
-#include "httprpc.cpp"
-#include "httpserver.h"
+#include <httprpc.cpp>
+#include <httpserver.h>
 
 using ::testing::Return;
 

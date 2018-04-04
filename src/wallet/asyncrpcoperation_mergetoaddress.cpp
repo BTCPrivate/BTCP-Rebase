@@ -2,34 +2,34 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include "asyncrpcoperation_mergetoaddress.h"
+#include <wallet/asyncrpcoperation_mergetoaddress.h>
 
-#include "amount.h"
-#include "asyncrpcqueue.h"
-#include "core_io.h"
-#include "init.h"
-#include "main.h"
-#include "miner.h"
-#include "net.h"
-#include "netbase.h"
-#include "rpcprotocol.h"
-#include "rpcserver.h"
-#include "script/interpreter.h"
-#include "sodium.h"
-#include "timedata.h"
-#include "util.h"
-#include "utilmoneystr.h"
-#include "utiltime.h"
-#include "wallet.h"
-#include "walletdb.h"
-#include "zcash/IncrementalMerkleTree.hpp"
+#include <amount.h>
+#include <asyncrpcqueue.h>
+#include <core_io.h>
+#include <init.h>
+#include <validation.h>
+#include <miner.h>
+#include <net.h>
+#include <netbase.h>
+#include <rpc/protocol.h>
+#include <rpc/server.h>
+#include <script/interpreter.h>
+#include <sodium.h>
+#include <timedata.h>
+#include <util.h>
+#include <utilmoneystr.h>
+#include <utiltime.h>
+#include <wallet/wallet.h>
+#include <wallet/walletdb.h>
+#include <zcash/IncrementalMerkleTree.hpp>
 
 #include <chrono>
 #include <iostream>
 #include <string>
 #include <thread>
 
-#include "paymentdisclosuredb.h"
+#include <wallet/paymentdisclosuredb.h>
 
 using namespace libzcash;
 
@@ -382,7 +382,7 @@ bool AsyncRPCOperation_mergetoaddress::main_impl()
     }
 
     // Keep track of treestate within this transaction
-    boost::unordered_map<uint256, ZCIncrementalMerkleTree, CCoinsKeyHasher> intermediates;
+    std::unordered_map<uint256, ZCIncrementalMerkleTree, CCoinsKeyHasher> intermediates;
     std::vector<uint256> previousCommitments;
 
     while (!vpubNewProcessed) {
@@ -757,10 +757,10 @@ UniValue AsyncRPCOperation_mergetoaddress::perform_joinsplit(
              FormatMoney(info.vjsout[0].value), FormatMoney(info.vjsout[1].value));
 
     // Generate the proof, this can take over a minute.
-    boost::array<libzcash::JSInput, ZC_NUM_JS_INPUTS> inputs{info.vjsin[0], info.vjsin[1]};
-    boost::array<libzcash::JSOutput, ZC_NUM_JS_OUTPUTS> outputs{info.vjsout[0], info.vjsout[1]};
-    boost::array<size_t, ZC_NUM_JS_INPUTS> inputMap;
-    boost::array<size_t, ZC_NUM_JS_OUTPUTS> outputMap;
+    std::array<libzcash::JSInput, ZC_NUM_JS_INPUTS> inputs{info.vjsin[0], info.vjsin[1]};
+    std::array<libzcash::JSOutput, ZC_NUM_JS_OUTPUTS> outputs{info.vjsout[0], info.vjsout[1]};
+    std::array<size_t, ZC_NUM_JS_INPUTS> inputMap;
+    std::array<size_t, ZC_NUM_JS_OUTPUTS> outputMap;
 
     uint256 esk; // payment disclosure - secret
 
@@ -871,9 +871,9 @@ UniValue AsyncRPCOperation_mergetoaddress::perform_joinsplit(
     return obj;
 }
 
-boost::array<unsigned char, ZC_MEMO_SIZE> AsyncRPCOperation_mergetoaddress::get_memo_from_hex_string(std::string s)
+std::array<unsigned char, ZC_MEMO_SIZE> AsyncRPCOperation_mergetoaddress::get_memo_from_hex_string(std::string s)
 {
-    boost::array<unsigned char, ZC_MEMO_SIZE> memo = {{0x00}};
+    std::array<unsigned char, ZC_MEMO_SIZE> memo = {{0x00}};
 
     std::vector<unsigned char> rawMemo = ParseHex(s.c_str());
 

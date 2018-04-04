@@ -1,9 +1,9 @@
 #include <gtest/gtest.h>
 
-#include "utilstrencodings.h"
-#include "version.h"
-#include "serialize.h"
-#include "streams.h"
+#include <utilstrencodings.h>
+#include <version.h>
+#include <serialize.h>
+#include <streams.h>
 
 #include <univalue.h>
 

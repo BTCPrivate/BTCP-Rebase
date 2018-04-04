@@ -1,12 +1,12 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
-#include "chainparams.h"
-#include "key.h"
-#include "miner.h"
-#include "util.h"
+#include <chainparams.h>
+#include <key.h>
+#include <miner.h>
+#include <util.h>
 #ifdef ENABLE_WALLET
-#include "wallet/wallet.h"
+#include <wallet/wallet.h>
 #endif
 
 #include <boost/optional.hpp>

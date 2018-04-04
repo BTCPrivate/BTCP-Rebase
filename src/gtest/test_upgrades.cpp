@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 
-#include "chainparams.h"
-#include "consensus/upgrades.h"
+#include <chainparams.h>
+#include <consensus/upgrades.h>
 
 #include <boost/optional.hpp>
 

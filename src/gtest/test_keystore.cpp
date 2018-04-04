@@ -1,11 +1,11 @@
 #include <gtest/gtest.h>
 
-#include "keystore.h"
-#include "random.h"
+#include <keystore.h>
+#include <random.h>
 #ifdef ENABLE_WALLET
-#include "wallet/crypter.h"
+#include <wallet/crypter.h>
 #endif
-#include "zcash/Address.hpp"
+#include <zcash/Address.hpp>
 
 TEST(keystore_tests, store_and_retrieve_spending_key) {
     CBasicKeyStore keyStore;

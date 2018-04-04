@@ -1,9 +1,9 @@
 #include <gtest/gtest.h>
 
-#include "consensus/upgrades.h"
-#include "consensus/validation.h"
-#include "main.h"
-#include "utiltest.h"
+#include <consensus/upgrades.h>
+#include <consensus/validation.h>
+#include <main.h>
+#include <utiltest.h>
 
 extern ZCJoinSplit* params;
 

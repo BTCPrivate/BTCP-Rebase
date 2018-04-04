@@ -1,13 +1,13 @@
 #include <gtest/gtest.h>
 #include <univalue.h>
 
-#include "chain.h"
-#include "chainparams.h"
-#include "clientversion.h"
-#include "primitives/block.h"
-#include "rpcserver.h"
-#include "streams.h"
-#include "utilstrencodings.h"
+#include <chain.h>
+#include <chainparams.h>
+#include <clientversion.h>
+#include <primitives/block.h>
+#include <rpcserver.h>
+#include <streams.h>
+#include <utilstrencodings.h>
 
 extern UniValue blockToJSON(const CBlock& block, const CBlockIndex* blockindex, bool txDetails = false);
 
