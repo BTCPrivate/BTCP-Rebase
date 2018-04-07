@@ -19,12 +19,15 @@
 #include <boost/thread.hpp>
 
 static const char DB_COIN = 'C';
+static const char DB_NULLIFIER = 's';
+static const char DB_ANCHOR = 'A';
 static const char DB_COINS = 'c';
 static const char DB_BLOCK_FILES = 'f';
 static const char DB_TXINDEX = 't';
 static const char DB_BLOCK_INDEX = 'b';
 
 static const char DB_BEST_BLOCK = 'B';
+static const char DB_BEST_ANCHOR = 'a';
 static const char DB_HEAD_BLOCKS = 'H';
 static const char DB_FLAG = 'F';
 static const char DB_REINDEX_FLAG = 'R';
@@ -54,8 +57,27 @@ struct CoinEntry {
 
 }
 
-CCoinsViewDB::CCoinsViewDB(size_t nCacheSize, bool fMemory, bool fWipe) : db(GetDataDir() / "chainstate", nCacheSize, fMemory, fWipe, true) 
+CCoinsViewDB::CCoinsViewDB(size_t nCacheSize, bool fMemory, bool fWipe) : db(GetDataDir() / "chainstate", nCacheSize, fMemory, fWipe, true)
 {
+}
+
+bool CCoinsViewDB::GetAnchorAt(const uint256 &rt, ZCIncrementalMerkleTree &tree) const {
+    if (rt == ZCIncrementalMerkleTree::empty_root()) {
+        ZCIncrementalMerkleTree new_tree;
+        tree = new_tree;
+        return true;
+    }
+
+    bool read = db.Read(std::make_pair(DB_ANCHOR, rt), tree);
+
+    return read;
+}
+
+bool CCoinsViewDB::GetNullifier(const uint256 &nf) const {
+    bool spent = false;
+    bool read = db.Read(std::make_pair(DB_NULLIFIER, nf), spent);
+
+    return read;
 }
 
 bool CCoinsViewDB::GetCoin(const COutPoint &outpoint, Coin &coin) const {
@@ -73,6 +95,13 @@ uint256 CCoinsViewDB::GetBestBlock() const {
     return hashBestChain;
 }
 
+uint256 CCoinsViewDB::GetBestAnchor() const {
+    uint256 hashBestAnchor;
+    if (!db.Read(DB_BEST_ANCHOR, hashBestAnchor))
+        return ZCIncrementalMerkleTree::empty_root();
+    return hashBestAnchor;
+}
+
 std::vector<uint256> CCoinsViewDB::GetHeadBlocks() const {
     std::vector<uint256> vhashHeadBlocks;
     if (!db.Read(DB_HEAD_BLOCKS, vhashHeadBlocks)) {
@@ -81,7 +110,11 @@ std::vector<uint256> CCoinsViewDB::GetHeadBlocks() const {
     return vhashHeadBlocks;
 }
 
-bool CCoinsViewDB::BatchWrite(CCoinsMap &mapCoins, const uint256 &hashBlock) {
+bool CCoinsViewDB::BatchWrite(CCoinsMap &mapCoins,
+                              const uint256 &hashBlock,
+                              const uint256 &hashAnchor,
+                              CAnchorsMap &mapAnchors,
+                              CNullifiersMap &mapNullifiers) {
     CDBBatch batch(db);
     size_t count = 0;
     size_t changed = 0;
@@ -132,9 +165,33 @@ bool CCoinsViewDB::BatchWrite(CCoinsMap &mapCoins, const uint256 &hashBlock) {
         }
     }
 
+    for (CAnchorsMap::iterator it = mapAnchors.begin(); it != mapAnchors.end();) {
+        if (it->second.flags & CAnchorsCacheEntry::DIRTY) {
+            if (!it->second.entered)
+                batch.Erase(std::make_pair(DB_ANCHOR, it->first));
+            else {
+                batch.Write(std::make_pair(DB_ANCHOR, it->first), it->second.tree);
+            }
+        }
+        CAnchorsMap::iterator itOld = it++;
+        mapAnchors.erase(itOld);
+    }
+
+    for (CNullifiersMap::iterator it = mapNullifiers.begin(); it != mapNullifiers.end();) {
+        if (it->second.flags & CNullifiersCacheEntry::DIRTY) {
+            if (!it->second.entered)
+                batch.Erase(std::make_pair(DB_NULLIFIER, it->first));
+            else
+                batch.Write(std::make_pair(DB_NULLIFIER, it->first), true);
+        }
+        CNullifiersMap::iterator itOld = it++;
+        mapNullifiers.erase(itOld);
+    }
+
     // In the last batch, mark the database as consistent with hashBlock again.
     batch.Erase(DB_HEAD_BLOCKS);
     batch.Write(DB_BEST_BLOCK, hashBlock);
+    batch.Write(DB_BEST_ANCHOR, hashAnchor);
 
     LogPrint(BCLog::COINDB, "Writing final batch of %.2f MiB\n", batch.SizeEstimate() * (1.0 / 1048576.0));
     bool ret = db.WriteBatch(batch);

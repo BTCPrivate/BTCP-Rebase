@@ -71,11 +71,18 @@ protected:
 public:
     explicit CCoinsViewDB(size_t nCacheSize, bool fMemory = false, bool fWipe = false);
 
+    bool GetAnchorAt(const uint256 &rt, ZCIncrementalMerkleTree &tree) const;
+    bool GetNullifier(const uint256 &nf) const;
     bool GetCoin(const COutPoint &outpoint, Coin &coin) const override;
     bool HaveCoin(const COutPoint &outpoint) const override;
     uint256 GetBestBlock() const override;
+    uint256 GetBestAnchor() const;
     std::vector<uint256> GetHeadBlocks() const override;
-    bool BatchWrite(CCoinsMap &mapCoins, const uint256 &hashBlock) override;
+    bool BatchWrite(CCoinsMap &mapCoins,
+                    const uint256 &hashBlock,
+                    const uint256 &hashAnchor,
+                    CAnchorsMap &mapAnchors,
+                    CNullifiersMap &mapNullifiers);
     CCoinsViewCursor *Cursor() const override;
 
     //! Attempt to update from an older database format. Returns whether an error occurred.
