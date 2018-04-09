@@ -33,9 +33,48 @@ bool operator==(const Coin &a, const Coin &b) {
 class CCoinsViewTest : public CCoinsView
 {
     uint256 hashBestBlock_;
+    uint256 hashBestAnchor_;
+
     std::map<COutPoint, Coin> map_;
+    std::map<uint256, ZCIncrementalMerkleTree> mapAnchors_;
+    std::map<uint256, bool> mapNullifiers_;
 
 public:
+    CCoinsViewTest() {
+        hashBestAnchor_ = ZCIncrementalMerkleTree::empty_root();
+    }
+
+    bool GetAnchorAt(const uint256& rt, ZCIncrementalMerkleTree &tree) const {
+        if (rt == ZCIncrementalMerkleTree::empty_root()) {
+            ZCIncrementalMerkleTree new_tree;
+            tree = new_tree;
+            return true;
+        }
+
+        std::map<uint256, ZCIncrementalMerkleTree>::const_iterator it = mapAnchors_.find(rt);
+        if (it == mapAnchors_.end()) {
+            return false;
+        } else {
+            tree = it->second;
+            return true;
+        }
+    }
+
+    bool GetNullifier(const uint256 &nf) const
+    {
+        std::map<uint256, bool>::const_iterator it = mapNullifiers_.find(nf);
+
+        if (it == mapNullifiers_.end()) {
+            return false;
+        } else {
+            // The map shouldn't contain any false entries.
+            assert(it->second);
+            return true;
+        }
+    }
+
+    uint256 GetBestAnchor() const { return hashBestAnchor_; }
+
     bool GetCoin(const COutPoint& outpoint, Coin& coin) const override
     {
         std::map<COutPoint, Coin>::const_iterator it = map_.find(outpoint);
@@ -52,7 +91,11 @@ public:
 
     uint256 GetBestBlock() const override { return hashBestBlock_; }
 
-    bool BatchWrite(CCoinsMap& mapCoins, const uint256& hashBlock) override
+    bool BatchWrite(CCoinsMap& mapCoins,
+                    const uint256& hashBlock,
+                    const uint256& hashAnchor,
+                    CAnchorsMap& mapAnchors,
+                    CNullifiersMap& mapNullifiers) override
     {
         for (CCoinsMap::iterator it = mapCoins.begin(); it != mapCoins.end(); ) {
             if (it->second.flags & CCoinsCacheEntry::DIRTY) {
@@ -65,8 +108,35 @@ public:
             }
             mapCoins.erase(it++);
         }
+        for (CAnchorsMap::iterator it = mapAnchors.begin(); it != mapAnchors.end(); ) {
+            if (it->second.entered) {
+                std::map<uint256, ZCIncrementalMerkleTree>::iterator ret =
+                    mapAnchors_.insert(std::make_pair(it->first, ZCIncrementalMerkleTree())).first;
+
+                ret->second = it->second.tree;
+            } else {
+                mapAnchors_.erase(it->first);
+            }
+            mapAnchors.erase(it++);
+        }
+        for (CNullifiersMap::iterator it = mapNullifiers.begin(); it != mapNullifiers.end(); ) {
+            if (it->second.entered) {
+                mapNullifiers_[it->first] = true;
+            } else {
+                mapNullifiers_.erase(it->first);
+            }
+            mapNullifiers.erase(it++);
+        }
+        mapCoins.clear();
+        mapAnchors.clear();
+        mapNullifiers.clear();
+
         if (!hashBlock.IsNull())
             hashBestBlock_ = hashBlock;
+
+        if(!hashAnchor.IsNull())
+            hashBestAnchor_ = hashAnchor;
+
         return true;
     }
 };
@@ -588,7 +658,10 @@ void WriteCoinsViewEntry(CCoinsView& view, CAmount value, char flags)
 {
     CCoinsMap map;
     InsertCoinsMapEntry(map, value, flags);
-    view.BatchWrite(map, {});
+
+    CAnchorsMap anchors;
+    CNullifiersMap nullifiers;
+    view.BatchWrite(map, {}, {}, anchors, nullifiers);
 }
 
 class SingleEntryCacheTest
