@@ -526,15 +526,20 @@ template<typename Stream, typename T, typename A> inline void Unserialize(Stream
 /**
  * array
  */
-template<typename T, std::size_t N> unsigned int GetSerializeSize(const boost::array<T, N> &item);
-template<typename Stream, typename T, std::size_t N> void Serialize(Stream& os, const boost::array<T, N>& item);
-template<typename Stream, typename T, std::size_t N> void Unserialize(Stream& is, boost::array<T, N>& item);
+template<typename Stream, typename T, std::size_t N> void Serialize(Stream& os, const std::array<T, N>& item);
+template<typename Stream, typename T, std::size_t N> void Unserialize(Stream& is, std::array<T, N>& item);
 
 /**
  * pair
  */
 template<typename Stream, typename K, typename T> void Serialize(Stream& os, const std::pair<K, T>& item);
 template<typename Stream, typename K, typename T> void Unserialize(Stream& is, std::pair<K, T>& item);
+
+/**
+ * optional
+ */
+template<typename Stream, typename T> void Serialize(Stream& os, const boost::optional<T>& item);
+template<typename Stream, typename T> void Unserialize(Stream& is, boost::optional<T>& item);
 
 /**
  * map
@@ -740,18 +745,8 @@ inline void Unserialize(Stream& is, std::vector<T, A>& v)
 /**
  * array
  */
-template<typename T, std::size_t N>
-    unsigned int GetSerializeSize(const boost::array<T, N> &item)
-{
-    unsigned int size = 0;
-    for (size_t i = 0; i < N; i++) {
-        size += GetSerializeSize(item[0]);
-    }
-    return size;
-}
-
 template<typename Stream, typename T, std::size_t N>
-    void Serialize(Stream& os, const boost::array<T, N>& item)
+    void Serialize(Stream& os, const std::array<T, N>& item)
 {
     for (size_t i = 0; i < N; i++) {
         Serialize(os, item[i]);
@@ -759,7 +754,7 @@ template<typename Stream, typename T, std::size_t N>
 }
 
 template<typename Stream, typename T, std::size_t N>
-    void Unserialize(Stream& is, boost::array<T, N>& item)
+    void Unserialize(Stream& is, std::array<T, N>& item)
 {
     for (size_t i = 0; i < N; i++) {
         Unserialize(is, item[i]);
@@ -784,6 +779,41 @@ void Unserialize(Stream& is, std::pair<K, T>& item)
     Unserialize(is, item.second);
 }
 
+
+/**
+ * optional
+ */
+template<typename Stream, typename T>
+    void Serialize(Stream& os, const boost::optional<T>& item)
+{
+    // If the value is there, put 0x01 and then serialize the value.
+    // If it's not, put 0x00.
+    if (item) {
+        unsigned char discriminant = 0x01;
+        Serialize(os, discriminant);
+        Serialize(os, *item);
+    } else {
+        unsigned char discriminant = 0x00;
+        Serialize(os, discriminant);
+    }
+}
+
+template<typename Stream, typename T>
+    void Unserialize(Stream& is, boost::optional<T>& item)
+{
+    unsigned char discriminant = 0x00;
+    Unserialize(is, discriminant);
+
+    if (discriminant == 0x00) {
+        item = boost::none;
+    } else if (discriminant == 0x01) {
+        T object;
+        Unserialize(is, object);
+        item = object;
+    } else {
+        throw std::ios_base::failure("non-canonical optional discriminant");
+    }
+}
 
 
 /**

@@ -220,13 +220,6 @@ inline void UnserializeTransaction(TxType& tx, Stream& s) {
         /* We read a non-empty vin. Assume a normal vout follows. */
         s >> tx.vout;
     }
-    if(tx.nVersion >= 2) {
-        s >> tx.vjoinsplit;
-        if (tx.vjoinsplit.size() > 0) {
-            s >> tx.joinSplitPubKey;
-            s >> tx.joinSplitSig;
-        }
-    }
     if ((flags & 1) && fAllowWitness) {
         /* The witness flag is present, and we support witnesses. */
         flags ^= 1;
@@ -239,6 +232,13 @@ inline void UnserializeTransaction(TxType& tx, Stream& s) {
         throw std::ios_base::failure("Unknown transaction optional data");
     }
     s >> tx.nLockTime;
+    if(tx.nVersion >= 2) {
+        s >> tx.vjoinsplit;
+        if (tx.vjoinsplit.size() > 0) {
+            s >> tx.joinSplitPubKey;
+            s >> tx.joinSplitSig;
+        }
+    }
 }
 
 template<typename Stream, typename TxType>
@@ -262,6 +262,12 @@ inline void SerializeTransaction(const TxType& tx, Stream& s) {
     }
     s << tx.vin;
     s << tx.vout;
+    if (flags & 1) {
+        for (size_t i = 0; i < tx.vin.size(); i++) {
+            s << tx.vin[i].scriptWitness.stack;
+        }
+    }
+    s << tx.nLockTime;
     if(tx.nVersion >= 2) {
         s << tx.vjoinsplit;
         if (tx.vjoinsplit.size() > 0) {
@@ -269,12 +275,6 @@ inline void SerializeTransaction(const TxType& tx, Stream& s) {
             s << tx.joinSplitSig;
         }
     }
-    if (flags & 1) {
-        for (size_t i = 0; i < tx.vin.size(); i++) {
-            s << tx.vin[i].scriptWitness.stack;
-        }
-    }
-    s << tx.nLockTime;
 }
 
 
@@ -284,7 +284,7 @@ inline void SerializeTransaction(const TxType& tx, Stream& s) {
 class CTransaction
 {
 public:
-    typedef boost::array<unsigned char, 64> joinsplit_sig_t;
+    typedef std::array<unsigned char, 64> joinsplit_sig_t;
 
     // Default transaction version.
     static const int32_t CURRENT_VERSION=2;

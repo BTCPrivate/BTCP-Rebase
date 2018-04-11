@@ -13,15 +13,15 @@
 JSDescription::JSDescription(ZCJoinSplit& params,
                              const uint256& pubKeyHash,
                              const uint256& anchor,
-                             const boost::array<libzcash::JSInput, ZC_NUM_JS_INPUTS>& inputs,
-                             const boost::array<libzcash::JSOutput, ZC_NUM_JS_OUTPUTS>& outputs,
+                             const std::array<libzcash::JSInput, ZC_NUM_JS_INPUTS>& inputs,
+                             const std::array<libzcash::JSOutput, ZC_NUM_JS_OUTPUTS>& outputs,
                              CAmount vpub_old,
                              CAmount vpub_new,
                              bool computeProof,
                              uint256 *esk // payment disclosure
     ) : vpub_old(vpub_old), vpub_new(vpub_new), anchor(anchor)
 {
-    boost::array<libzcash::Note, ZC_NUM_JS_OUTPUTS> notes;
+    std::array<libzcash::Note, ZC_NUM_JS_OUTPUTS> notes;
 
     proof = params.prove(
         inputs,
@@ -46,10 +46,10 @@ JSDescription JSDescription::Randomized(
     ZCJoinSplit& params,
     const uint256& pubKeyHash,
     const uint256& anchor,
-    boost::array<libzcash::JSInput, ZC_NUM_JS_INPUTS>& inputs,
-    boost::array<libzcash::JSOutput, ZC_NUM_JS_OUTPUTS>& outputs,
-    boost::array<size_t, ZC_NUM_JS_INPUTS>& inputMap,
-    boost::array<size_t, ZC_NUM_JS_OUTPUTS>& outputMap,
+    std::array<libzcash::JSInput, ZC_NUM_JS_INPUTS>& inputs,
+    std::array<libzcash::JSOutput, ZC_NUM_JS_OUTPUTS>& outputs,
+    std::array<size_t, ZC_NUM_JS_INPUTS>& inputMap,
+    std::array<size_t, ZC_NUM_JS_OUTPUTS>& outputMap,
     CAmount vpub_old,
     CAmount vpub_new,
     bool computeProof,
