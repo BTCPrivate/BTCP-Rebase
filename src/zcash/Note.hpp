@@ -29,11 +29,11 @@ public:
     uint64_t value = 0;
     uint256 rho;
     uint256 r;
-    boost::array<unsigned char, ZC_MEMO_SIZE> memo;
+    std::array<unsigned char, ZC_MEMO_SIZE> memo;
 
     NotePlaintext() {}
 
-    NotePlaintext(const Note& note, boost::array<unsigned char, ZC_MEMO_SIZE> memo);
+    NotePlaintext(const Note& note, std::array<unsigned char, ZC_MEMO_SIZE> memo);
 
     Note note(const PaymentAddress& addr) const;
 

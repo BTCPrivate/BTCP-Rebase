@@ -5,15 +5,15 @@
 #ifndef ZCASH_PAYMENTDISCLOSURE_H
 #define ZCASH_PAYMENTDISCLOSURE_H
 
-#include "uint256.h"
-#include "clientversion.h"
-#include "serialize.h"
-#include "streams.h"
-#include "version.h"
+#include <uint256.h>
+#include <clientversion.h>
+#include <serialize.h>
+#include <streams.h>
+#include <version.h>
 
 // For JSOutPoint
 #include <zkaddr.h>
-#include "wallet/wallet.h"
+#include <wallet/wallet.h>
 
 #include <cstdint>
 #include <string>
@@ -114,11 +114,11 @@ struct PaymentDisclosurePayload {
 
 struct PaymentDisclosure {
     PaymentDisclosurePayload            payload;
-    boost::array<unsigned char, 64>     payloadSig;
+    std::array<unsigned char, 64>     payloadSig;
     // We use boost array because serialize doesn't like char buffer, otherwise we could do: unsigned char payloadSig[64];
 
     PaymentDisclosure() {};
-    PaymentDisclosure(const PaymentDisclosurePayload payload, const boost::array<unsigned char, 64> sig) : payload(payload), payloadSig(sig) {};
+    PaymentDisclosure(const PaymentDisclosurePayload payload, const std::array<unsigned char, 64> sig) : payload(payload), payloadSig(sig) {};
     PaymentDisclosure(const uint256& joinSplitPubKey, const PaymentDisclosureKey& key, const PaymentDisclosureInfo& info, const std::string& message);
 
     ADD_SERIALIZE_METHODS;

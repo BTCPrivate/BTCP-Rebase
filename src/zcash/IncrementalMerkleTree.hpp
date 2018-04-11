@@ -47,7 +47,7 @@ public:
     friend bool operator==(const EmptyMerkleRoots<D, H>& a,
                            const EmptyMerkleRoots<D, H>& b);
 private:
-    boost::array<Hash, Depth+1> empty_roots;
+    std::array<Hash, Depth+1> empty_roots;
 };
 
 template<size_t Depth, typename Hash>
