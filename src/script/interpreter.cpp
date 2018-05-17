@@ -99,7 +99,7 @@ bool static IsCompressedPubKey(const valtype &vchPubKey) {
  * Where R and S are not negative (their first byte has its highest bit not set), and not
  * excessively padded (do not start with a 0 byte, unless an otherwise negative number follows,
  * in which case a single 0 byte is necessary and even required).
- * 
+ *
  * See https://bitcointalk.org/index.php?topic=8392.msg127623#msg127623
  *
  * This function is consensus-critical since BIP66.
@@ -139,7 +139,7 @@ bool static IsValidSignatureEncoding(const std::vector<unsigned char> &sig) {
     // Verify that the length of the signature matches the sum of the length
     // of the elements.
     if ((size_t)(lenR + lenS + 7) != sig.size()) return false;
- 
+
     // Check whether the R element is an integer.
     if (sig[2] != 0x02) return false;
 
@@ -290,7 +290,6 @@ bool EvalScript(std::vector<std::vector<unsigned char> >& stack, const CScript& 
 
     CScript::const_iterator pc = script.begin();
     CScript::const_iterator pend = script.end();
-    CScript::const_iterator pbegincodehash = script.begin();
     opcodetype opcode;
     valtype vchPushValue;
     std::vector<bool> vfExec;
@@ -333,7 +332,8 @@ bool EvalScript(std::vector<std::vector<unsigned char> >& stack, const CScript& 
                 opcode == OP_DIV ||
                 opcode == OP_MOD ||
                 opcode == OP_LSHIFT ||
-                opcode == OP_RSHIFT)
+                opcode == OP_RSHIFT ||
+                opcode == OP_CODESEPARATOR)
                 return set_error(serror, SCRIPT_ERR_DISABLED_OPCODE); // Disabled opcodes.
 
             // With SCRIPT_VERIFY_CONST_SCRIPTCODE, OP_CODESEPARATOR in non-segwit script is rejected even in an unexecuted branch
@@ -457,7 +457,20 @@ bool EvalScript(std::vector<std::vector<unsigned char> >& stack, const CScript& 
                     break;
                 }
 
-                case OP_NOP1: case OP_NOP4: case OP_NOP5:
+                case OP_ZENREPLAY:
+                {
+                    if (stack.size() == 2) {
+                        popstack(stack);
+                        popstack(stack);
+                    }
+                    else {
+                        if (flags & SCRIPT_VERIFY_DISCOURAGE_UPGRADABLE_NOPS)
+                            return set_error(serror, SCRIPT_ERR_DISCOURAGE_UPGRADABLE_NOPS);
+                    }
+                }
+                break;
+
+                case OP_NOP1: case OP_NOP4:
                 case OP_NOP6: case OP_NOP7: case OP_NOP8: case OP_NOP9: case OP_NOP10:
                 {
                     if (flags & SCRIPT_VERIFY_DISCOURAGE_UPGRADABLE_NOPS)
@@ -899,16 +912,6 @@ bool EvalScript(std::vector<std::vector<unsigned char> >& stack, const CScript& 
                     popstack(stack);
                     stack.push_back(vchHash);
                 }
-                break;                                   
-
-                case OP_CODESEPARATOR:
-                {
-                    // If SCRIPT_VERIFY_CONST_SCRIPTCODE flag is set, use of OP_CODESEPARATOR is rejected in pre-segwit
-                    // script, even in an unexecuted branch (this is checked above the opcode case statement).
-
-                    // Hash starts after the code separator
-                    pbegincodehash = pc;
-                }
                 break;
 
                 case OP_CHECKSIG:
@@ -924,18 +927,11 @@ bool EvalScript(std::vector<std::vector<unsigned char> >& stack, const CScript& 
                     // Subset of script starting at the most recent codeseparator
                     CScript scriptCode(pbegincodehash, pend);
 
-                    // Drop the signature in pre-segwit scripts but not segwit scripts
-                    if (sigversion == SigVersion::BASE) {
-                        int found = FindAndDelete(scriptCode, CScript(vchSig));
-                        if (found > 0 && (flags & SCRIPT_VERIFY_CONST_SCRIPTCODE))
-                            return set_error(serror, SCRIPT_ERR_SIG_FINDANDDELETE);
-                    }
-
                     if (!CheckSignatureEncoding(vchSig, flags, serror) || !CheckPubKeyEncoding(vchPubKey, flags, sigversion, serror)) {
                         //serror is set
                         return false;
                     }
-                    bool fSuccess = checker.CheckSig(vchSig, vchPubKey, scriptCode, sigversion);
+                    bool fSuccess = checker.CheckSig(vchSig, vchPubKey, script, sigversion);
 
                     if (!fSuccess && (flags & SCRIPT_VERIFY_NULLFAIL) && vchSig.size())
                         return set_error(serror, SCRIPT_ERR_SIG_NULLFAIL);
@@ -984,20 +980,6 @@ bool EvalScript(std::vector<std::vector<unsigned char> >& stack, const CScript& 
                     if ((int)stack.size() < i)
                         return set_error(serror, SCRIPT_ERR_INVALID_STACK_OPERATION);
 
-                    // Subset of script starting at the most recent codeseparator
-                    CScript scriptCode(pbegincodehash, pend);
-
-                    // Drop the signature in pre-segwit scripts but not segwit scripts
-                    for (int k = 0; k < nSigsCount; k++)
-                    {
-                        valtype& vchSig = stacktop(-isig-k);
-                        if (sigversion == SigVersion::BASE) {
-                            int found = FindAndDelete(scriptCode, CScript(vchSig));
-                            if (found > 0 && (flags & SCRIPT_VERIFY_CONST_SCRIPTCODE))
-                                return set_error(serror, SCRIPT_ERR_SIG_FINDANDDELETE);
-                        }
-                    }
-
                     bool fSuccess = true;
                     while (fSuccess && nSigsCount > 0)
                     {
@@ -1013,7 +995,7 @@ bool EvalScript(std::vector<std::vector<unsigned char> >& stack, const CScript& 
                         }
 
                         // Check signature
-                        bool fOk = checker.CheckSig(vchSig, vchPubKey, scriptCode, sigversion);
+                        bool fOk = checker.CheckSig(vchSig, vchPubKey, script, sigversion);
 
                         if (fOk) {
                             isig++;
@@ -1107,7 +1089,7 @@ public:
         fHashSingle((nHashTypeIn & 0x1f) == SIGHASH_SINGLE),
         fHashNone((nHashTypeIn & 0x1f) == SIGHASH_NONE) {}
 
-    /** Serialize the passed scriptCode, skipping OP_CODESEPARATORs */
+    /** Serialize the passed scriptCode */
     template<typename S>
     void SerializeScriptCode(S &s) const {
         CScript::const_iterator it = scriptCode.begin();
