@@ -99,13 +99,15 @@ public:
 class CBlockUndo
 {
 public:
-    std::vector<CTxUndo> vtxundo; // for all but the coinbase
+    std::vector<CTxUndo> vtxundo; // for all but the coinbas
+    uint256 old_tree_root;
 
     ADD_SERIALIZE_METHODS;
 
     template <typename Stream, typename Operation>
     inline void SerializationOp(Stream& s, Operation ser_action) {
         READWRITE(vtxundo);
+        READWRITE(old_tree_root);
     }
 };
 

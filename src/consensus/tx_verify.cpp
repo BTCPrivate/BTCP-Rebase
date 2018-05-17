@@ -7,12 +7,16 @@
 #include <consensus/consensus.h>
 #include <primitives/transaction.h>
 #include <script/interpreter.h>
+#include <consensus/joinsplit.h>
 #include <consensus/validation.h>
 
 // TODO remove the following dependencies
 #include <chain.h>
 #include <coins.h>
+#include <util.h>
 #include <utilmoneystr.h>
+#include <zcash/Zcash.h>
+#include <zcash/Proof.hpp>
 
 bool IsFinalTx(const CTransaction &tx, int nBlockHeight, int64_t nBlockTime)
 {
@@ -158,17 +162,30 @@ int64_t GetTransactionSigOpCost(const CTransaction& tx, const CCoinsViewCache& i
 
 bool CheckTransaction(const CTransaction& tx, CValidationState &state, bool fCheckDuplicateInputs)
 {
+    // Check transaction version
+    if (tx.nVersion < MIN_TX_VERSION) {
+        return state.DoS(100, error("CheckTransaction(): version too low"),
+                         REJECT_INVALID, "bad-txns-version-too-low");
+    }
+
     // Basic checks that don't depend on any context
-    if (tx.vin.empty())
-        return state.DoS(10, false, REJECT_INVALID, "bad-txns-vin-empty");
-    if (tx.vout.empty())
-        return state.DoS(10, false, REJECT_INVALID, "bad-txns-vout-empty");
+    // Transactions can contain empty `vin` and `vout` so long as
+    // `vjoinsplit` is non-empty.
+    if (tx.vin.empty() && tx.vjoinsplit.empty())
+        return state.DoS(10, error("CheckTransaction(): vin empty"),
+                         REJECT_INVALID, "bad-txns-vin-empty");
+    if (tx.vout.empty() && tx.vjoinsplit.empty())
+        return state.DoS(10, error("CheckTransaction(): vout empty"),
+                         REJECT_INVALID, "bad-txns-vout-empty");
+
     // Size limits (this doesn't take the witness into account, as that hasn't been checked for malleability)
-    if (::GetSerializeSize(tx, SER_NETWORK, PROTOCOL_VERSION | SERIALIZE_TRANSACTION_NO_WITNESS) * WITNESS_SCALE_FACTOR > MAX_BLOCK_WEIGHT)
+    if (::GetSerializeSize(tx, SER_NETWORK, PROTOCOL_VERSION | SERIALIZE_TRANSACTION_NO_WITNESS)  > MAX_TX_SIZE)
         return state.DoS(100, false, REJECT_INVALID, "bad-txns-oversize");
 
     // Check for negative or overflow output values
     CAmount nValueOut = 0;
+    CAmount nValueIn = 0;
+
     for (const auto& txout : tx.vout)
     {
         if (txout.nValue < 0)
@@ -180,6 +197,47 @@ bool CheckTransaction(const CTransaction& tx, CValidationState &state, bool fChe
             return state.DoS(100, false, REJECT_INVALID, "bad-txns-txouttotal-toolarge");
     }
 
+    // Ensure that joinsplit values are well-formed
+    for (const JSDescription& joinsplit : tx.vjoinsplit)
+    {
+        if (joinsplit.vpub_old < 0) {
+            return state.DoS(100, error("CheckTransaction(): joinsplit.vpub_old negative"),
+                             REJECT_INVALID, "bad-txns-vpub_old-negative");
+        }
+
+        if (joinsplit.vpub_new < 0) {
+            return state.DoS(100, error("CheckTransaction(): joinsplit.vpub_new negative"),
+                             REJECT_INVALID, "bad-txns-vpub_new-negative");
+        }
+
+        if (joinsplit.vpub_old > MAX_MONEY) {
+            return state.DoS(100, error("CheckTransaction(): joinsplit.vpub_old too high"),
+                             REJECT_INVALID, "bad-txns-vpub_old-toolarge");
+        }
+
+        if (joinsplit.vpub_new > MAX_MONEY) {
+            return state.DoS(100, error("CheckTransaction(): joinsplit.vpub_new too high"),
+                             REJECT_INVALID, "bad-txns-vpub_new-toolarge");
+        }
+
+        if (joinsplit.vpub_new != 0 && joinsplit.vpub_old != 0) {
+            return state.DoS(100, error("CheckTransaction(): joinsplit.vpub_new and joinsplit.vpub_old both nonzero"),
+                             REJECT_INVALID, "bad-txns-vpubs-both-nonzero");
+        }
+
+        nValueOut += joinsplit.vpub_old;
+        if (!MoneyRange(nValueOut)) {
+            return state.DoS(100, error("CheckTransaction(): txout total out of range"),
+                             REJECT_INVALID, "bad-txns-txouttotal-toolarge");
+        }
+
+        nValueIn += joinsplit.vpub_new;
+        if (!MoneyRange(joinsplit.vpub_new) || !MoneyRange(nValueIn)) {
+            return state.DoS(100, error("CheckTransaction(): txin total out of range"),
+                             REJECT_INVALID, "bad-txns-txintotal-toolarge");
+        }
+    }
+
     // Check for duplicate inputs - note that this check is slow so we skip it in CheckBlock
     if (fCheckDuplicateInputs) {
         std::set<COutPoint> vInOutPoints;
@@ -188,10 +246,29 @@ bool CheckTransaction(const CTransaction& tx, CValidationState &state, bool fChe
             if (!vInOutPoints.insert(txin.prevout).second)
                 return state.DoS(100, false, REJECT_INVALID, "bad-txns-inputs-duplicate");
         }
+
+        // Check for duplicate joinsplit nullifiers in this transaction
+        std::set<uint256> vJoinSplitNullifiers;
+        for (const JSDescription& joinsplit : tx.vjoinsplit)
+        {
+            for (const uint256& nf : joinsplit.nullifiers)
+            {
+                if (vJoinSplitNullifiers.count(nf))
+                    return state.DoS(100, error("CheckTransaction(): duplicate nullifiers"),
+                                     REJECT_INVALID, "bad-joinsplits-nullifiers-duplicate");
+
+                vJoinSplitNullifiers.insert(nf);
+            }
+        }
     }
 
     if (tx.IsCoinBase())
     {
+        // There should be no joinsplits in a coinbase transaction
+        if (tx.vjoinsplit.size() > 0)
+            return state.DoS(100, error("CheckTransaction(): coinbase has joinsplits"),
+                             REJECT_INVALID, "bad-cb-has-joinsplits");
+
         if (tx.vin[0].scriptSig.size() < 2 || tx.vin[0].scriptSig.size() > 100)
             return state.DoS(100, false, REJECT_INVALID, "bad-cb-length");
     }
@@ -205,12 +282,17 @@ bool CheckTransaction(const CTransaction& tx, CValidationState &state, bool fChe
     return true;
 }
 
-bool Consensus::CheckTxInputs(const CTransaction& tx, CValidationState& state, const CCoinsViewCache& inputs, int nSpendHeight, CAmount& txfee)
+bool Consensus::CheckTxInputs(const CTransaction& tx, CValidationState& state, const CCoinsViewCache& inputs, int nSpendHeight, CAmount& txfee, bool fCoinbaseMustBeProtected, uint64_t forkStartHeight, uint64_t forkHeightRange)
 {
     // are the actual inputs available?
     if (!inputs.HaveInputs(tx)) {
         return state.DoS(100, false, REJECT_INVALID, "bad-txns-inputs-missingorspent", false,
                          strprintf("%s: inputs missing/spent", __func__));
+    }
+
+    // are the JoinSplit's requirements met?
+    if (!inputs.HaveJoinSplitRequirements(tx)) {
+        return state.Invalid(error("CheckInputs(): %s JoinSplit requirements not met", tx.GetHash().ToString()));
     }
 
     CAmount nValueIn = 0;
@@ -220,10 +302,21 @@ bool Consensus::CheckTxInputs(const CTransaction& tx, CValidationState& state, c
         assert(!coin.IsSpent());
 
         // If prev is coinbase, check that it's matured
-        if (coin.IsCoinBase() && nSpendHeight - coin.nHeight < COINBASE_MATURITY) {
-            return state.Invalid(false,
-                REJECT_INVALID, "bad-txns-premature-spend-of-coinbase",
-                strprintf("tried to spend coinbase at depth %d", nSpendHeight - coin.nHeight));
+        if (coin.IsCoinBase()) {
+            if(nSpendHeight - coin.nHeight < COINBASE_MATURITY) {
+                return state.Invalid(false,
+                                     REJECT_INVALID, "bad-txns-premature-spend-of-coinbase",
+                                     strprintf("tried to spend coinbase at depth %d", nSpendHeight - coin.nHeight));
+            }
+
+            // Ensure that coinbases cannot be spent to transparent outputs
+            // Disabled on regtest
+            if (fCoinbaseMustBeProtected && (coin.nHeight <= forkStartHeight || coin.nHeight > forkStartHeight + forkHeightRange) &&
+                !tx.vout.empty()) {
+                return state.Invalid(
+                    error("CheckInputs(): tried to spend coinbase with transparent outputs"),
+                    REJECT_INVALID, "bad-txns-coinbase-spend-has-transparent-outputs");
+            }
         }
 
         // Check for negative or overflow input values
@@ -232,6 +325,11 @@ bool Consensus::CheckTxInputs(const CTransaction& tx, CValidationState& state, c
             return state.DoS(100, false, REJECT_INVALID, "bad-txns-inputvalues-outofrange");
         }
     }
+
+    nValueIn += tx.GetJoinSplitValueIn();
+    if (!MoneyRange(tx.GetJoinSplitValueIn()) || !MoneyRange(nValueIn))
+        return state.DoS(100, error("CheckInputs(): vpub_old values out of range"),
+                         REJECT_INVALID, "bad-txns-inputvalues-outofrange");
 
     const CAmount value_out = tx.GetValueOut();
     if (nValueIn < value_out) {

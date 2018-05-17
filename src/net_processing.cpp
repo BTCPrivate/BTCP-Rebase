@@ -867,7 +867,7 @@ static uint256 most_recent_block_hash;
 static bool fWitnessesPresentInMostRecentCompactBlock;
 
 /**
- * Maintain state about the best-seen block and fast-announce a compact block 
+ * Maintain state about the best-seen block and fast-announce a compact block
  * to compatible peers.
  */
 void PeerLogicValidation::NewPoWValidBlock(const CBlockIndex *pindex, const std::shared_ptr<const CBlock>& pblock) {
@@ -912,7 +912,7 @@ void PeerLogicValidation::NewPoWValidBlock(const CBlockIndex *pindex, const std:
 }
 
 /**
- * Update our best height and announce any block hashes which weren't previously 
+ * Update our best height and announce any block hashes which weren't previously
  * in chainActive to our peers.
  */
 void PeerLogicValidation::UpdatedBlockTip(const CBlockIndex *pindexNew, const CBlockIndex *pindexFork, bool fInitialDownload) {
@@ -948,7 +948,7 @@ void PeerLogicValidation::UpdatedBlockTip(const CBlockIndex *pindexNew, const CB
 }
 
 /**
- * Handle invalid block rejection and consequent peer banning, maintain which 
+ * Handle invalid block rejection and consequent peer banning, maintain which
  * peers announce compact blocks.
  */
 void PeerLogicValidation::BlockChecked(const CBlock& block, const CValidationState& state) {
@@ -1481,6 +1481,7 @@ bool static ProcessHeadersMessage(CNode *pfrom, CConnman *connman, const std::ve
                 // Download as much as possible, from earliest to latest.
                 for (const CBlockIndex *pindex : reverse_iterate(vToFetch)) {
                     if (nodestate->nBlocksInFlight >= MAX_BLOCKS_IN_TRANSIT_PER_PEER) {
+                        std::cout << "NOT REQUESTING MORE BLOCKS" << std::endl;
                         // Can't download any more from this peer
                         break;
                     }
@@ -1631,17 +1632,6 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
             return false;
         }
 
-        if (nServices & ((1 << 7) | (1 << 5))) {
-            if (GetTime() < 1533096000) {
-                // Immediately disconnect peers that use service bits 6 or 8 until August 1st, 2018
-                // These bits have been used as a flag to indicate that a node is running incompatible
-                // consensus rules instead of changing the network magic, so we're stuck disconnecting
-                // based on these service bits, at least for a while.
-                pfrom->fDisconnect = true;
-                return false;
-            }
-        }
-
         if (nVersion < MIN_PEER_PROTO_VERSION)
         {
             // disconnect from peers older than this proto version
@@ -1654,8 +1644,6 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
             return false;
         }
 
-        if (nVersion == 10300)
-            nVersion = 300;
         if (!vRecv.empty())
             vRecv >> addrFrom >> nNonce;
         if (!vRecv.empty()) {
@@ -1761,12 +1749,6 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
         int64_t nTimeOffset = nTime - GetTime();
         pfrom->nTimeOffset = nTimeOffset;
         AddTimeData(pfrom->addr, nTimeOffset);
-
-        // If the peer is old enough to have the old alert system, send it the final alert.
-        if (pfrom->nVersion <= 70012) {
-            CDataStream finalAlert(ParseHex("60010000000000000000000000ffffff7f00000000ffffff7ffeffff7f01ffffff7f00000000ffffff7f00ffffff7f002f555247454e543a20416c657274206b657920636f6d70726f6d697365642c2075706772616465207265717569726564004630440220653febd6410f470f6bae11cad19c48413becb1ac2c17f908fd0fd53bdc3abd5202206d0e9c96fe88d4a0f01ed9dedae2b6f9e00da94cad0fecaae66ecf689bf71b50"), SER_NETWORK, PROTOCOL_VERSION);
-            connman->PushMessage(pfrom, CNetMsgMaker(nSendVersion).Make("alert", finalAlert));
-        }
 
         // Feeler connections exist only to verify if address is online.
         if (pfrom->fFeeler) {
@@ -2201,7 +2183,7 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
 
         if (!AlreadyHave(inv) &&
             AcceptToMemoryPool(mempool, state, ptx, &fMissingInputs, &lRemovedTxn, false /* bypass_limits */, 0 /* nAbsurdFee */)) {
-            mempool.check(pcoinsTip.get());
+            mempool.check(pcoinsTip.get(), chainparams);
             RelayTransaction(tx, connman);
             for (unsigned int i = 0; i < tx.vout.size(); i++) {
                 vWorkQueue.emplace_back(inv.hash, i);
@@ -2268,7 +2250,7 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
                             recentRejects->insert(orphanHash);
                         }
                     }
-                    mempool.check(pcoinsTip.get());
+                    mempool.check(pcoinsTip.get(), chainparams);
                 }
             }
 

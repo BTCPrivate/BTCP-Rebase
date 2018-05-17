@@ -124,7 +124,7 @@ public:
         static_assert(Consensus::DEPLOYMENT_SEGWIT == Consensus::DEPLOYMENT_CSV, "segwit and csv deployed together");
 
         // The best chain should have at least this much work.
-        consensus.nMinimumChainWork  = uint256S("0x00000000000000000000000000000000000000000000000000000000ffffffff");
+        consensus.nMinimumChainWork  = uint256S("0x0000000000000000000000000000000000000000000000000000ffffffffffff");
 
         pchMessageStart[0] = 0xa8;
         pchMessageStart[1] = 0xea;
@@ -134,7 +134,6 @@ public:
         nDefaultPort = 7933;
 
         nPruneAfterHeight = 100000;
-        const size_t N = 200, K = 9;
 
         nEquihashN = 200;
         nEquihashK = 9;
