@@ -26,7 +26,12 @@ bool MutableTransactionSignatureCreator::CreateSig(const SigningProvider& provid
     if (sigversion == SigVersion::WITNESS_V0 && !key.IsCompressed())
         return false;
 
-    uint256 hash = SignatureHash(scriptCode, *txTo, nIn, nHashType, amount, sigversion);
+    uint256 hash;
+    try {
+        hash = SignatureHash(scriptCode, *txTo, nIn, nHashType, FORKID_IN_USE, amount, sigversion);
+    } catch (std::logic_error ex) {
+        return false;
+    }
     if (!key.Sign(hash, vchSig))
         return false;
     vchSig.push_back((unsigned char)nHashType);
@@ -209,7 +214,7 @@ bool SignSignature(const SigningProvider &provider, const CScript& fromPubKey, C
 {
     assert(nIn < txTo.vin.size());
 
-    MutableTransactionSignatureCreator creator(&txTo, nIn, amount, nHashType);
+    MutableTransactionSignatureCreator creator(&txTo, nIn, amount, nHashType | SIGHASH_FORKID);
 
     SignatureData sigdata;
     bool ret = ProduceSignature(provider, creator, fromPubKey, sigdata);
@@ -257,7 +262,7 @@ static std::vector<valtype> CombineMultisig(const CScript& scriptPubKey, const B
             if (sigs.count(pubkey))
                 continue; // Already got a sig for this pubkey
 
-            if (checker.CheckSig(sig, pubkey, scriptPubKey, sigversion))
+            if (checker.CheckSig(sig, pubkey, scriptPubKey, FORKID_IN_USE, sigversion))
             {
                 sigs[pubkey] = sig;
                 break;
@@ -395,7 +400,7 @@ class DummySignatureChecker final : public BaseSignatureChecker
 {
 public:
     DummySignatureChecker() {}
-    bool CheckSig(const std::vector<unsigned char>& scriptSig, const std::vector<unsigned char>& vchPubKey, const CScript& scriptCode, SigVersion sigversion) const override { return true; }
+    bool CheckSig(const std::vector<unsigned char>& scriptSig, const std::vector<unsigned char>& vchPubKey, const CScript& scriptCode, const int forkid, SigVersion sigversion) const override { return true; }
 };
 const DummySignatureChecker DUMMY_CHECKER;
 
@@ -415,7 +420,7 @@ public:
         vchSig[4 + 33] = 0x02;
         vchSig[5 + 33] = 32;
         vchSig[6 + 33] = 0x01;
-        vchSig[6 + 33 + 32] = SIGHASH_ALL;
+        vchSig[6 + 33 + 32] = SIGHASH_ALL | SIGHASH_FORKID;
         return true;
     }
 };

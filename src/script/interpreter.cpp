@@ -169,6 +169,13 @@ bool static IsValidSignatureEncoding(const std::vector<unsigned char> &sig) {
     return true;
 }
 
+uint32_t static GetHashType(const valtype &vchSig) {
+    if (vchSig.size() == 0)
+        return 0;
+    // check IsValidSignatureEncoding()'s comment for vchSig format
+    return vchSig.back();
+}
+
 bool static IsLowDERSignature(const valtype &vchSig, ScriptError* serror) {
     if (!IsValidSignatureEncoding(vchSig)) {
         return set_error(serror, SCRIPT_ERR_SIG_DER);
@@ -190,11 +197,20 @@ bool static IsDefinedHashtypeSignature(const valtype &vchSig) {
     if (vchSig.size() == 0) {
         return false;
     }
-    unsigned char nHashType = vchSig[vchSig.size() - 1] & (~(SIGHASH_ANYONECANPAY));
+    unsigned char nHashType = GetHashType(vchSig) & (~(SIGHASH_ANYONECANPAY|SIGHASH_FORKID));
     if (nHashType < SIGHASH_ALL || nHashType > SIGHASH_SINGLE)
         return false;
 
     return true;
+}
+
+bool static UsesForkId(uint32_t nHashType) {
+    return nHashType & SIGHASH_FORKID;
+}
+
+bool static UsesForkId(const valtype &vchSig) {
+    uint32_t nHashType = GetHashType(vchSig);
+    return UsesForkId(nHashType);
 }
 
 bool CheckSignatureEncoding(const std::vector<unsigned char> &vchSig, unsigned int flags, ScriptError* serror) {
@@ -209,6 +225,8 @@ bool CheckSignatureEncoding(const std::vector<unsigned char> &vchSig, unsigned i
         // serror is set
         return false;
     } else if ((flags & SCRIPT_VERIFY_STRICTENC) != 0 && !IsDefinedHashtypeSignature(vchSig)) {
+        return set_error(serror, SCRIPT_ERR_SIG_HASHTYPE);
+    } else if ((flags & SCRIPT_VERIFY_FORKID) != 0 && !UsesForkId(vchSig)) {
         return set_error(serror, SCRIPT_ERR_SIG_HASHTYPE);
     }
     return true;
@@ -299,6 +317,8 @@ bool EvalScript(std::vector<std::vector<unsigned char> >& stack, const CScript& 
         return set_error(serror, SCRIPT_ERR_SCRIPT_SIZE);
     int nOpCount = 0;
     bool fRequireMinimal = (flags & SCRIPT_VERIFY_MINIMALDATA) != 0;
+
+    const int forkid = (flags & SCRIPT_VERIFY_FORKID) ? FORKID_IN_USE : 0;
 
     try
     {
@@ -924,14 +944,11 @@ bool EvalScript(std::vector<std::vector<unsigned char> >& stack, const CScript& 
                     valtype& vchSig    = stacktop(-2);
                     valtype& vchPubKey = stacktop(-1);
 
-                    // Subset of script starting at the most recent codeseparator
-                    CScript scriptCode(pbegincodehash, pend);
-
                     if (!CheckSignatureEncoding(vchSig, flags, serror) || !CheckPubKeyEncoding(vchPubKey, flags, sigversion, serror)) {
                         //serror is set
                         return false;
                     }
-                    bool fSuccess = checker.CheckSig(vchSig, vchPubKey, script, sigversion);
+                    bool fSuccess = checker.CheckSig(vchSig, vchPubKey, script, forkid, sigversion);
 
                     if (!fSuccess && (flags & SCRIPT_VERIFY_NULLFAIL) && vchSig.size())
                         return set_error(serror, SCRIPT_ERR_SIG_NULLFAIL);
@@ -995,7 +1012,7 @@ bool EvalScript(std::vector<std::vector<unsigned char> >& stack, const CScript& 
                         }
 
                         // Check signature
-                        bool fOk = checker.CheckSig(vchSig, vchPubKey, script, sigversion);
+                        bool fOk = checker.CheckSig(vchSig, vchPubKey, script, forkid, sigversion);
 
                         if (fOk) {
                             isig++;
@@ -1092,24 +1109,9 @@ public:
     /** Serialize the passed scriptCode */
     template<typename S>
     void SerializeScriptCode(S &s) const {
-        CScript::const_iterator it = scriptCode.begin();
-        CScript::const_iterator itBegin = it;
-        opcodetype opcode;
-        unsigned int nCodeSeparators = 0;
-        while (scriptCode.GetOp(it, opcode)) {
-            if (opcode == OP_CODESEPARATOR)
-                nCodeSeparators++;
-        }
-        ::WriteCompactSize(s, scriptCode.size() - nCodeSeparators);
-        it = itBegin;
-        while (scriptCode.GetOp(it, opcode)) {
-            if (opcode == OP_CODESEPARATOR) {
-                s.write((char*)&itBegin[0], it-itBegin-1);
-                itBegin = it;
-            }
-        }
-        if (itBegin != scriptCode.end())
-            s.write((char*)&itBegin[0], it-itBegin);
+        auto size = scriptCode.size();
+        ::WriteCompactSize(s, size);
+        s.write((char*)&scriptCode.begin()[0], size);
     }
 
     /** Serialize an input of txTo */
@@ -1121,6 +1123,7 @@ public:
         // Serialize the prevout
         ::Serialize(s, txTo.vin[nInput].prevout);
         // Serialize the script
+        assert(nInput != NOT_AN_INPUT);
         if (nInput != nIn)
             // Blank out other inputs' signatures
             ::Serialize(s, CScript());
@@ -1161,6 +1164,23 @@ public:
              SerializeOutput(s, nOutput);
         // Serialize nLockTime
         ::Serialize(s, txTo.nLockTime);
+
+        // Serialize vjoinsplit
+        if (txTo.nVersion >= 2) {
+            //
+            // SIGHASH_* functions will hash portions of
+            // the transaction for use in signatures. This
+            // keeps the JoinSplit cryptographically bound
+            // to the transaction.
+            //
+            ::Serialize(s, txTo.vjoinsplit);
+            if (txTo.vjoinsplit.size() > 0) {
+                ::Serialize(s, txTo.joinSplitPubKey);
+
+                CTransaction::joinsplit_sig_t nullSig = {};
+                ::Serialize(s, nullSig);
+            }
+        }
     }
 };
 
@@ -1213,9 +1233,11 @@ template PrecomputedTransactionData::PrecomputedTransactionData(const CTransacti
 template PrecomputedTransactionData::PrecomputedTransactionData(const CMutableTransaction& txTo);
 
 template <class T>
-uint256 SignatureHash(const CScript& scriptCode, const T& txTo, unsigned int nIn, int nHashType, const CAmount& amount, SigVersion sigversion, const PrecomputedTransactionData* cache)
+uint256 SignatureHash(const CScript& scriptCode, const T& txTo, unsigned int nIn, int nHashType, const int forkid, const CAmount& amount, SigVersion sigversion, const PrecomputedTransactionData* cache)
 {
-    assert(nIn < txTo.vin.size());
+    if (nIn >= txTo.vin.size() && nIn != NOT_AN_INPUT) {
+        throw std::logic_error("input index is out of range");
+    }
 
     if (sigversion == SigVersion::WITNESS_V0) {
         uint256 hashPrevouts;
@@ -1263,22 +1285,24 @@ uint256 SignatureHash(const CScript& scriptCode, const T& txTo, unsigned int nIn
         return ss.GetHash();
     }
 
-    static const uint256 one(uint256S("0000000000000000000000000000000000000000000000000000000000000001"));
 
     // Check for invalid use of SIGHASH_SINGLE
     if ((nHashType & 0x1f) == SIGHASH_SINGLE) {
         if (nIn >= txTo.vout.size()) {
-            //  nOut out of range
-            return one;
+            throw std::logic_error("no matching output for SIGHASH_SINGLE");
         }
     }
+
+    int nForkHashType = nHashType;
+    if (UsesForkId(nHashType))
+        nForkHashType |= forkid << 8;
 
     // Wrapper to serialize only the necessary parts of the transaction being signed
     CTransactionSignatureSerializer<T> txTmp(txTo, scriptCode, nIn, nHashType);
 
     // Serialize and hash
     CHashWriter ss(SER_GETHASH, 0);
-    ss << txTmp << nHashType;
+    ss << txTmp << nForkHashType;
     return ss.GetHash();
 }
 
@@ -1289,7 +1313,7 @@ bool GenericTransactionSignatureChecker<T>::VerifySignature(const std::vector<un
 }
 
 template <class T>
-bool GenericTransactionSignatureChecker<T>::CheckSig(const std::vector<unsigned char>& vchSigIn, const std::vector<unsigned char>& vchPubKey, const CScript& scriptCode, SigVersion sigversion) const
+bool GenericTransactionSignatureChecker<T>::CheckSig(const std::vector<unsigned char>& vchSigIn, const std::vector<unsigned char>& vchPubKey, const CScript& scriptCode, const int forkid, SigVersion sigversion) const
 {
     CPubKey pubkey(vchPubKey);
     if (!pubkey.IsValid())
@@ -1299,10 +1323,15 @@ bool GenericTransactionSignatureChecker<T>::CheckSig(const std::vector<unsigned 
     std::vector<unsigned char> vchSig(vchSigIn);
     if (vchSig.empty())
         return false;
-    int nHashType = vchSig.back();
+    int nHashType = GetHashType(vchSig);
     vchSig.pop_back();
 
-    uint256 sighash = SignatureHash(scriptCode, *txTo, nIn, nHashType, amount, sigversion, this->txdata);
+    uint256 sighash;
+    try {
+        sighash = SignatureHash(scriptCode, *txTo, nIn, nHashType, forkid, amount, sigversion, this->txdata);
+    } catch (std::logic_error ex) {
+        return false;
+    }
 
     if (!VerifySignature(vchSig, pubkey, sighash))
         return false;

@@ -47,6 +47,8 @@ std::ostream& operator<<(std::ostream& os, const uint256& num)
 
 BasicTestingSetup::BasicTestingSetup(const std::string& chainName)
 {
+    assert(init_and_check_sodium() != -1);
+
         SHA256AutoDetect();
         RandomInit();
         ECC_Start();

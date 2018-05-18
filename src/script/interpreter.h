@@ -12,11 +12,15 @@
 #include <vector>
 #include <stdint.h>
 #include <string>
+#include <climits>
 
 class CPubKey;
 class CScript;
 class CTransaction;
 class uint256;
+
+/** Special case nIn for signing JoinSplits. */
+const unsigned int NOT_AN_INPUT = UINT_MAX;
 
 /** Signature hash types/flags */
 enum
@@ -28,6 +32,8 @@ enum
     SIGHASH_ANYONECANPAY = 0x80,
 };
 
+static const int SIGHASH_FLAGS_MASK = SIGHASH_FORKID | SIGHASH_ANYONECANPAY;
+static const int SIGHASH_BASE_MASK = ~SIGHASH_FLAGS_MASK;
 
 enum
 {
@@ -158,12 +164,12 @@ static constexpr size_t WITNESS_V0_SCRIPTHASH_SIZE = 32;
 static constexpr size_t WITNESS_V0_KEYHASH_SIZE = 20;
 
 template <class T>
-uint256 SignatureHash(const CScript& scriptCode, const T& txTo, unsigned int nIn, int nHashType, const CAmount& amount, SigVersion sigversion, const PrecomputedTransactionData* cache = nullptr);
+uint256 SignatureHash(const CScript& scriptCode, const T& txTo, unsigned int nIn, int nHashType, const int forkid, const CAmount& amount, SigVersion sigversion, const PrecomputedTransactionData* cache = nullptr);
 
 class BaseSignatureChecker
 {
 public:
-    virtual bool CheckSig(const std::vector<unsigned char>& scriptSig, const std::vector<unsigned char>& vchPubKey, const CScript& scriptCode, SigVersion sigversion) const
+    virtual bool CheckSig(const std::vector<unsigned char>& scriptSig, const std::vector<unsigned char>& vchPubKey, const CScript& scriptCode, const int forkid, SigVersion sigversion) const
     {
         return false;
     }
@@ -196,7 +202,7 @@ protected:
 public:
     GenericTransactionSignatureChecker(const T* txToIn, unsigned int nInIn, const CAmount& amountIn) : txTo(txToIn), nIn(nInIn), amount(amountIn), txdata(nullptr) {}
     GenericTransactionSignatureChecker(const T* txToIn, unsigned int nInIn, const CAmount& amountIn, const PrecomputedTransactionData& txdataIn) : txTo(txToIn), nIn(nInIn), amount(amountIn), txdata(&txdataIn) {}
-    bool CheckSig(const std::vector<unsigned char>& scriptSig, const std::vector<unsigned char>& vchPubKey, const CScript& scriptCode, SigVersion sigversion) const override;
+    bool CheckSig(const std::vector<unsigned char>& scriptSig, const std::vector<unsigned char>& vchPubKey, const CScript& scriptCode, const int forkid, SigVersion sigversion) const override;
     bool CheckLockTime(const CScriptNum& nLockTime) const override;
     bool CheckSequence(const CScriptNum& nSequence) const override;
 };

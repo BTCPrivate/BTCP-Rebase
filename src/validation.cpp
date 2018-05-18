@@ -436,7 +436,7 @@ bool CheckSequenceLocks(const CTransaction &tx, int flags, LockPoints* lp, bool 
 }
 
 // Returns the script flags which should be checked for a given block
-static unsigned int GetBlockScriptFlags(const CBlockIndex* pindex, const Consensus::Params& chainparams);
+static unsigned int GetBlockScriptFlags(const CBlockIndex* pindex, const CChainParams& chainparams);
 
 static void LimitMempoolSize(CTxMemPool& pool, size_t limit, unsigned long age) {
     int expired = pool.Expire(GetTime() - age);
@@ -940,7 +940,7 @@ static bool AcceptToMemoryPoolWorker(const CChainParams& chainparams, CTxMemPool
         // There is a similar check in CreateNewBlock() to prevent creating
         // invalid blocks (using TestBlockValidity), however allowing such
         // transactions into the mempool can be exploited as a DoS attack.
-        unsigned int currentBlockScriptVerifyFlags = GetBlockScriptFlags(chainActive.Tip(), Params().GetConsensus());
+        unsigned int currentBlockScriptVerifyFlags = GetBlockScriptFlags(chainActive.Tip(), Params());
         if (!CheckInputsFromMempoolAndCache(tx, state, view, pool, currentBlockScriptVerifyFlags, true, txdata)) {
             // If we're using promiscuousmempoolflags, we may hit this normally
             // Check if current block has some flags that scriptVerifyFlags
@@ -1789,8 +1789,10 @@ static bool IsScriptWitnessEnabled(const Consensus::Params& params)
     return params.vDeployments[Consensus::DEPLOYMENT_SEGWIT].nTimeout != 0;
 }
 
-static unsigned int GetBlockScriptFlags(const CBlockIndex* pindex, const Consensus::Params& consensusparams) {
+static unsigned int GetBlockScriptFlags(const CBlockIndex* pindex, const CChainParams& chainparams) {
     AssertLockHeld(cs_main);
+
+    const Consensus::Params& consensusparams = chainparams.GetConsensus();
 
     unsigned int flags = SCRIPT_VERIFY_NONE;
 
@@ -1807,9 +1809,9 @@ static unsigned int GetBlockScriptFlags(const CBlockIndex* pindex, const Consens
     }
 
     // Start enforcing rules for first hard fork
-    if (isForkEnabled(pindex->nHeight)){
+    if (isForkEnabled(pindex->nHeight, chainparams.ForkStartHeight())){
         flags |= SCRIPT_VERIFY_FORKID;
-        flags |= SCRIPT_VERIFY_WITNESS_BOOTSTRAP;
+        flags |= SCRIPT_VERIFY_WITNESS_FORK;
     }
 
     // Start enforcing BIP68 (sequence locks) and BIP112 (CHECKSEQUENCEVERIFY) using versionbits logic.
@@ -1941,7 +1943,7 @@ bool CChainState::ConnectBlock(const CBlock& block, CValidationState& state, CBl
     }
 
     // Get the script flags for this block
-    unsigned int flags = GetBlockScriptFlags(pindex, chainparams.GetConsensus());
+    unsigned int flags = GetBlockScriptFlags(pindex, chainparams);
 
     int64_t nTime2 = GetTimeMicros(); nTimeForks += nTime2 - nTime1;
     LogPrint(BCLog::BENCH, "    - Fork checks: %.2fms [%.2fs (%.2fms/blk)]\n", MILLI * (nTime2 - nTime1), nTimeForks * MICRO, nTimeForks * MILLI / nBlocksTotal);
