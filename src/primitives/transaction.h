@@ -201,30 +201,30 @@ struct CMutableTransaction;
  */
 template<typename Stream, typename TxType>
 inline void UnserializeTransaction(TxType& tx, Stream& s) {
+    static_assert(0 < MIN_TX_VERSION, "dummy version must be a consensus invalid version");
+
     const bool fAllowWitness = !(s.GetVersion() & SERIALIZE_TRANSACTION_NO_WITNESS);
 
-    s >> tx.nVersion;
     unsigned char flags = 0;
+    s >> tx.nVersion;
+    if (tx.nVersion == 0) {
+        /* We read a dummy version, read flags and then the real version */
+        s >> flags;
+        s >> tx.nVersion;
+    }
+
     tx.vin.clear();
     tx.vout.clear();
-    /* Try to read the vin. In case the dummy is there, this will be read as an empty vector. */
     s >> tx.vin;
-    if (tx.vin.size() == 0 && fAllowWitness) {
-        /* We read a dummy or an empty vin. */
-        s >> flags;
-        if (flags != 0) {
-            s >> tx.vin;
-            s >> tx.vout;
-        }
-    } else {
-        /* We read a non-empty vin. Assume a normal vout follows. */
-        s >> tx.vout;
-    }
-    if ((flags & 1) && fAllowWitness) {
+    s >> tx.vout;
+    if ((flags & 1)) {
         /* The witness flag is present, and we support witnesses. */
         flags ^= 1;
         for (size_t i = 0; i < tx.vin.size(); i++) {
             s >> tx.vin[i].scriptWitness.stack;
+            if(!fAllowWitness) {
+                tx.vin[i].scriptWitness.stack.clear();
+            }
         }
     }
     if (flags) {
@@ -245,21 +245,18 @@ template<typename Stream, typename TxType>
 inline void SerializeTransaction(const TxType& tx, Stream& s) {
     const bool fAllowWitness = !(s.GetVersion() & SERIALIZE_TRANSACTION_NO_WITNESS);
 
-    s << tx.nVersion;
     unsigned char flags = 0;
-    // Consistency check
-    if (fAllowWitness) {
-        /* Check whether witnesses need to be serialized. */
-        if (tx.HasWitness()) {
-            flags |= 1;
-        }
+    if (fAllowWitness && tx.HasWitness()) {
+        flags |= 1;
     }
+
     if (flags) {
         /* Use extended format in case witnesses are to be serialized. */
-        std::vector<CTxIn> vinDummy;
-        s << vinDummy;
+        s << 0;
         s << flags;
     }
+
+    s << tx.nVersion;
     s << tx.vin;
     s << tx.vout;
     if (flags & 1) {
