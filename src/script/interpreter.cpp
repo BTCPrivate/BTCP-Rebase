@@ -1427,7 +1427,7 @@ bool GenericTransactionSignatureChecker<T>::CheckSequence(const CScriptNum& nSeq
 template class GenericTransactionSignatureChecker<CTransaction>;
 template class GenericTransactionSignatureChecker<CMutableTransaction>;
 
-static bool VerifyWitnessProgram(const CScriptWitness& witness, int witversion, const std::vector<unsigned char>& program, unsigned int flags, const BaseSignatureChecker& checker, ScriptError* serror)
+static bool VerifyWitnessProgram(const CScriptWitness& witness, int witversion, const std::vector<unsigned char>& program, unsigned int flags, const BaseSignatureChecker& checker, ScriptError* serror, bool isForkClaim)
 {
     std::vector<std::vector<unsigned char> > stack;
     CScript scriptPubKey;
@@ -1468,7 +1468,7 @@ static bool VerifyWitnessProgram(const CScriptWitness& witness, int witversion, 
             return set_error(serror, SCRIPT_ERR_PUSH_SIZE);
     }
 
-    if (!EvalScript(stack, scriptPubKey, flags, checker, SigVersion::WITNESS_V0, serror)) {
+    if (!EvalScript(stack, scriptPubKey, flags, checker, isForkClaim ? SigVersion::BASE : SigVersion::WITNESS_V0, serror)) {
         return false;
     }
 
@@ -1498,7 +1498,7 @@ bool VerifyScript(const CScript& scriptSig, const CScript& scriptPubKey, const C
     if (!EvalScript(stack, scriptSig, flags, checker, SigVersion::BASE, serror))
         // serror is set
         return false;
-    if (flags & SCRIPT_VERIFY_P2SH)
+    if (flags & SCRIPT_VERIFY_P2SH || flags & SCRIPT_VERIFY_WITNESS_FORK)
         stackCopy = stack;
     if (!EvalScript(stack, scriptPubKey, flags, checker, SigVersion::BASE, serror))
         // serror is set
@@ -1511,14 +1511,25 @@ bool VerifyScript(const CScript& scriptSig, const CScript& scriptPubKey, const C
     // Bare witness programs
     int witnessversion;
     std::vector<unsigned char> witnessprogram;
-    if (flags & SCRIPT_VERIFY_WITNESS) {
+    if (flags & SCRIPT_VERIFY_WITNESS || flags & SCRIPT_VERIFY_WITNESS_FORK) {
         if (scriptPubKey.IsWitnessProgram(witnessversion, witnessprogram)) {
             hadWitness = true;
-            if (scriptSig.size() != 0) {
+
+            bool useForkClaiming = false;
+            CScriptWitness claimWitness;
+            if (flags & SCRIPT_VERIFY_WITNESS_FORK) {
+                if (witnessversion == 0 && witness->IsNull()) {
+                    useForkClaiming = true;
+                    claimWitness.stack = stackCopy;
+                }
+            }
+
+            if (!useForkClaiming && scriptSig.size() != 0) {
                 // The scriptSig must be _exactly_ CScript(), otherwise we reintroduce malleability.
                 return set_error(serror, SCRIPT_ERR_WITNESS_MALLEATED);
             }
-            if (!VerifyWitnessProgram(*witness, witnessversion, witnessprogram, flags, checker, serror)) {
+
+            if (!VerifyWitnessProgram(useForkClaiming ? claimWitness : *witness, witnessversion, witnessprogram, flags, checker, serror, useForkClaiming)) {
                 return false;
             }
             // Bypass the cleanstack check at the end. The actual stack is obviously not clean
@@ -1546,6 +1557,10 @@ bool VerifyScript(const CScript& scriptSig, const CScript& scriptPubKey, const C
         CScript pubKey2(pubKeySerialized.begin(), pubKeySerialized.end());
         popstack(stack);
 
+        std::vector<std::vector<unsigned char> > witStack;
+        if (flags & SCRIPT_VERIFY_WITNESS_FORK)
+            witStack = stack;
+
         if (!EvalScript(stack, pubKey2, flags, checker, SigVersion::BASE, serror))
             // serror is set
             return false;
@@ -1555,15 +1570,25 @@ bool VerifyScript(const CScript& scriptSig, const CScript& scriptPubKey, const C
             return set_error(serror, SCRIPT_ERR_EVAL_FALSE);
 
         // P2SH witness program
-        if (flags & SCRIPT_VERIFY_WITNESS) {
+        if (flags & SCRIPT_VERIFY_WITNESS || flags & SCRIPT_VERIFY_WITNESS_FORK) {
             if (pubKey2.IsWitnessProgram(witnessversion, witnessprogram)) {
                 hadWitness = true;
-                if (scriptSig != CScript() << std::vector<unsigned char>(pubKey2.begin(), pubKey2.end())) {
+
+                bool useForkClaiming = false;
+                CScriptWitness claimWitness;
+                if (flags & SCRIPT_VERIFY_WITNESS_FORK) {
+                    if (witnessversion == 0 && witness->IsNull()) {
+                        useForkClaiming = true;
+                        claimWitness.stack = witStack;
+                    }
+                }
+
+                if (!useForkClaiming && scriptSig != CScript() << std::vector<unsigned char>(pubKey2.begin(), pubKey2.end())) {
                     // The scriptSig must be _exactly_ a single push of the redeemScript. Otherwise we
                     // reintroduce malleability.
                     return set_error(serror, SCRIPT_ERR_WITNESS_MALLEATED_P2SH);
                 }
-                if (!VerifyWitnessProgram(*witness, witnessversion, witnessprogram, flags, checker, serror)) {
+                if (!VerifyWitnessProgram(useForkClaiming ? claimWitness : *witness, witnessversion, witnessprogram, flags, checker, serror, useForkClaiming)) {
                     return false;
                 }
                 // Bypass the cleanstack check at the end. The actual stack is obviously not clean
