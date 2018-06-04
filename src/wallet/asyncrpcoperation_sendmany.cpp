@@ -10,6 +10,8 @@
 #include <init.h>
 #include <net.h>
 #include <netbase.h>
+#include <paymentdisclosure.h>
+#include <paymentdisclosuredb.h>
 #include <rpc/server.h>
 #include <timedata.h>
 #include <util.h>
@@ -28,8 +30,6 @@
 #include <chrono>
 #include <thread>
 #include <string>
-
-#include <paymentdisclosuredb.h>
 
 using namespace libzcash;
 
@@ -309,7 +309,7 @@ bool AsyncRPCOperation_sendmany::main_impl() {
         t_inputs_total = selectedUTXOAmount;
 
         // Check mempooltxinputlimit to avoid creating a transaction which the local mempool rejects
-        size_t limit = (size_t)GetArg("-mempooltxinputlimit", 0);
+        size_t limit = (size_t)gArgs.GetArg("-mempooltxinputlimit", 0);
         {
             LOCK(cs_main);
             if (NetworkUpgradeActive(chainActive.Height() + 1, Params().GetConsensus(), Consensus::UPGRADE_OVERWINTER)) {

@@ -10,6 +10,8 @@
 #include <main.h>
 #include <net.h>
 #include <netbase.h>
+#include <paymentdisclosure.h>
+#include <paymentdisclosuredb.h>
 #include <rpcserver.h>
 #include <timedata.h>
 #include <util.h>
@@ -18,7 +20,7 @@
 #include <walletdb.h>
 #include <script/interpreter.h>
 #include <utiltime.h>
-#include <rpcprotocol.h>
+#include <rpc/protocol.h>
 #include <zcash/IncrementalMerkleTree.hpp>
 #include <sodium.h>
 #include <miner.h>
@@ -30,8 +32,6 @@
 
 #include <wallet/asyncrpcoperation_shieldcoinbase.h>
 
-#include <wallet/paymentdisclosure.h>
-#include <wallet/paymentdisclosuredb.h>
 
 using namespace libzcash;
 

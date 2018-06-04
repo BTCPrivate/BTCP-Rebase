@@ -12,6 +12,7 @@
 #include <miner.h>
 #include <net.h>
 #include <netbase.h>
+#include <paymentdisclosuredb.h>
 #include <rpc/protocol.h>
 #include <rpc/server.h>
 #include <rpc/rawtransaction.cpp>
@@ -25,8 +26,6 @@
 #include <wallet/walletdb.h>
 #include <zcash/IncrementalMerkleTree.hpp>
 #include <key_io.h>
-
-#include <paymentdisclosuredb.h>
 
 #include <chrono>
 #include <iostream>
