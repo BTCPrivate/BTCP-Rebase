@@ -24,12 +24,12 @@
 #include <wallet/walletdb.h>
 #include <zcash/IncrementalMerkleTree.hpp>
 
+#include <paymentdisclosuredb.h>
+
 #include <chrono>
 #include <iostream>
 #include <string>
 #include <thread>
-
-#include <wallet/paymentdisclosuredb.h>
 
 using namespace libzcash;
 
