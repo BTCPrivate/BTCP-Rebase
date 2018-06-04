@@ -23,6 +23,7 @@
 #include <wallet/wallet.h>
 #include <wallet/walletdb.h>
 #include <zcash/IncrementalMerkleTree.hpp>
+#include <key_io.h>
 
 #include <paymentdisclosuredb.h>
 
@@ -73,8 +74,8 @@ AsyncRPCOperation_mergetoaddress::AsyncRPCOperation_mergetoaddress(
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Recipient parameter missing");
     }
 
-    toTaddr_ = CBitcoinAddress(std::get<0>(recipient));
-    isToTaddr_ = toTaddr_.IsValid();
+    toTaddr_ = DecodeDestination(std::get<0>(recipient));
+    isToTaddr_ = IsValidDestination(toTaddr_);
     isToZaddr_ = false;
 
     if (!isToTaddr_) {
@@ -246,7 +247,7 @@ bool AsyncRPCOperation_mergetoaddress::main_impl()
         rawTx.vin.push_back(in);
     }
     if (isToTaddr_) {
-        CScript scriptPubKey = GetScriptForDestination(toTaddr_.Get());
+        CScript scriptPubKey = GetScriptForDestination(toTaddr_);
         CTxOut out(sendAmount, scriptPubKey);
         rawTx.vout.push_back(out);
     }
