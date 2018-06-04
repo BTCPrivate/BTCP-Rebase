@@ -55,6 +55,8 @@ namespace BCLog {
         LEVELDB     = (1 << 20),
         EQUIHASH    = (1 << 21),
         PAYMENTDISCLOSURE = (1 << 22),
+        ZRPC        = (1 << 23),
+        ZRPCUNSAFE  = (1 << 24),
         ALL         = ~(uint32_t)0,
     };
 
