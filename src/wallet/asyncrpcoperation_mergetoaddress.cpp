@@ -14,6 +14,7 @@
 #include <netbase.h>
 #include <rpc/protocol.h>
 #include <rpc/server.h>
+#include <rpc/rawtransaction.cpp>
 #include <script/interpreter.h>
 #include <sodium.h>
 #include <timedata.h>
@@ -636,7 +637,9 @@ void AsyncRPCOperation_mergetoaddress::sign_send_raw_transaction(UniValue obj)
 
     UniValue params = UniValue(UniValue::VARR);
     params.push_back(rawtxn);
-    UniValue signResultValue = signrawtransaction(params, false);
+    JSONRPCRequest jsonRequest;
+    jsonRequest.params = params;
+    UniValue signResultValue = signrawtransaction(jsonRequest);
     UniValue signResultObject = signResultValue.get_obj();
     UniValue completeValue = find_value(signResultObject, "complete");
     bool complete = completeValue.get_bool();
@@ -656,7 +659,9 @@ void AsyncRPCOperation_mergetoaddress::sign_send_raw_transaction(UniValue obj)
         params.clear();
         params.setArray();
         params.push_back(signedtxn);
-        UniValue sendResultValue = sendrawtransaction(params, false);
+        JSONRPCRequest jsonRequest;
+        jsonRequest.params = params;
+        UniValue sendResultValue = sendrawtransaction(jsonRequest);
         if (sendResultValue.isNull()) {
             throw JSONRPCError(RPC_WALLET_ERROR, "Send raw transaction did not return an error or a txid.");
         }
