@@ -61,7 +61,7 @@
 #include <openssl/crypto.h>
 
 #include <libsnark/common/profiling.hpp>
-#include "librustzcash.h"
+#include <librustzcash.h>
 
 #if ENABLE_ZMQ
 #include <zmq/zmqnotificationinterface.h>
@@ -753,47 +753,22 @@ static bool AppInitServers()
 }
 
 /** Load Zcash ceremony params from filesystem */
-static void ZC_LoadParams(
-    const CChainParams& chainparams
-)
+static void ZC_LoadParams()
 {
     struct timeval tv_start, tv_end;
     float elapsed;
 
     boost::filesystem::path pk_path = ZC_GetParamsDir() / "sprout-proving.key";
     boost::filesystem::path vk_path = ZC_GetParamsDir() / "sprout-verifying.key";
-    boost::filesystem::path sapling_spend = ZC_GetParamsDir() / "sapling-spend-testnet.params";
-    boost::filesystem::path sapling_output = ZC_GetParamsDir() / "sapling-output-testnet.params";
-    boost::filesystem::path sprout_groth16 = ZC_GetParamsDir() / "sprout-groth16-testnet.params";
 
-    bool sapling_paths_valid = true;
-
-    // We don't load Sapling zk-SNARK params if mainnet is configured
-    if (chainparams.NetworkIDString() != "main") {
-        sapling_paths_valid =
-            boost::filesystem::exists(sapling_spend) &&
-            boost::filesystem::exists(sapling_output) &&
-            boost::filesystem::exists(sprout_groth16);
-    }
-
-    // TODO BTCP - Or ever, initially
-    sapling_paths_valid = false;
-
-
-    if (!(
-        boost::filesystem::exists(pk_path) &&
-        boost::filesystem::exists(vk_path) &&
-        sapling_paths_valid
-    )) {
-        uiInterface.ThreadSafeMessageBox(strprintf(
-            _("Cannot find the Zcash network parameters in the following directory:\n"
-              "%s\n"
-              "Please run 'zcash-fetch-params' or './zcutil/fetch-params.sh' and then restart."),
-                ZC_GetParamsDir()),
-            "", CClientUIInterface::MSG_ERROR);
-        StartShutdown();
-        return;
-    }
+    uiInterface.ThreadSafeMessageBox(strprintf(
+        _("Cannot find the Zcash network parameters in the following directory:\n"
+          "%s\n"
+          "Please run 'zcash-fetch-params' or './zcutil/fetch-params.sh' and then restart."),
+            ZC_GetParamsDir()),
+        "", CClientUIInterface::MSG_ERROR);
+    StartShutdown();
+    return;
 
     LogPrintf("Loading verifying key from %s\n", vk_path.string().c_str());
     gettimeofday(&tv_start, 0);
@@ -803,29 +778,6 @@ static void ZC_LoadParams(
     gettimeofday(&tv_end, 0);
     elapsed = float(tv_end.tv_sec-tv_start.tv_sec) + (tv_end.tv_usec-tv_start.tv_usec)/float(1000000);
     LogPrintf("Loaded verifying key in %fs seconds.\n", elapsed);
-
-    if (chainparams.NetworkIDString() != "main") {
-        std::string sapling_spend_str = sapling_spend.string();
-        std::string sapling_output_str = sapling_output.string();
-        std::string sprout_groth16_str = sprout_groth16.string();
-
-        LogPrintf("Loading Sapling (Spend) parameters from %s\n", sapling_spend_str.c_str());
-        LogPrintf("Loading Sapling (Output) parameters from %s\n", sapling_output_str.c_str());
-        LogPrintf("Loading Sapling (Sprout Groth16) parameters from %s\n", sprout_groth16_str.c_str());
-        gettimeofday(&tv_start, 0);
-
-        librustzcash_init_zksnark_params(
-            sapling_spend_str.c_str(),
-            sapling_output_str.c_str(),
-            sprout_groth16_str.c_str()
-        );
-
-        gettimeofday(&tv_end, 0);
-        elapsed = float(tv_end.tv_sec-tv_start.tv_sec) + (tv_end.tv_usec-tv_start.tv_usec)/float(1000000);
-        LogPrintf("Loaded Sapling parameters in %fs seconds.\n", elapsed);
-    } else {
-        LogPrintf("Not loading Sapling parameters in mainnet\n");
-    }
 }
 
 
@@ -1367,7 +1319,7 @@ bool AppInitMain()
     libsnark::inhibit_profiling_counters = true;
 
     // Initialize Zcash circuit parameters
-    ZC_LoadParams(chainparams);
+    ZC_LoadParams();
 
     /* Register RPC commands regardless of -server setting so they will be
      * available in the GUI RPC console even if external calls are disabled.
