@@ -11,7 +11,7 @@
 #include "uint256.h"
 #include "uint252.h"
 
-#include <boost/array.hpp>
+#include <array>
 
 namespace libzcash {
 

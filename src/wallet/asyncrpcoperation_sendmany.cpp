@@ -127,9 +127,9 @@ void AsyncRPCOperation_sendmany::main() {
 
 #ifdef ENABLE_MINING
   #ifdef ENABLE_WALLET
-    GenerateBitcoins(false, NULL, 0);
+    //GenerateBitcoins(false, NULL, 0);
   #else
-    GenerateBitcoins(false, 0);
+    //GenerateBitcoins(false, 0);
   #endif
 #endif
 
@@ -156,9 +156,9 @@ void AsyncRPCOperation_sendmany::main() {
 
 #ifdef ENABLE_MINING
   #ifdef ENABLE_WALLET
-    GenerateBitcoins(GetBoolArg("-gen",false), pwalletMain, GetArg("-genproclimit", 1));
+    //GenerateBitcoins(gArgs.GetBoolArg("-gen",false), pwalletMain, gArgs.GetArg("-genproclimit", 1));
   #else
-    GenerateBitcoins(GetBoolArg("-gen",false), GetArg("-genproclimit", 1));
+    //GenerateBitcoins(gArgs.GetBoolArg("-gen",false), gArgs.GetArg("-genproclimit", 1));
   #endif
 #endif
 

@@ -19,7 +19,7 @@
 #include <zcash/JoinSplit.hpp>
 #include <zcash/Proof.hpp>
 
-#include <boost/array.hpp>
+#include <array>
 
 class JSDescription
 {
