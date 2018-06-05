@@ -509,6 +509,11 @@ void SetupServerArgs()
     gArgs.AddArg("-rpcworkqueue=<n>", strprintf("Set the depth of the work queue to service RPC calls (default: %d)", DEFAULT_HTTP_WORKQUEUE), true, OptionsCategory::RPC);
     gArgs.AddArg("-server", "Accept command line and JSON-RPC commands", false, OptionsCategory::RPC);
 
+    // Experimental mode features
+    gArgs.AddArg("-developerencryptwallet", "Enable filesystem wallet encryption", false, OptionsCategory::OPTIONS);
+    gArgs.AddArg("-paymentdisclosure", "Enable RPC method z_getpaymentdisclosure and z_validatepaymentdisclosure, which create payment proofs (ZIP 303)", false, OptionsCategory::RPC);
+    gArgs.AddArg("-z_mergetoaddress", "Enable RPC method z_mergetoaddress, which combines many small UTXOs and notes into a few larger ones.", false, OptionsCategory::RPC);
+
     // Hidden options
     gArgs.AddArg("-rpcssl", "", false, OptionsCategory::HIDDEN);
     gArgs.AddArg("-benchmark", "", false, OptionsCategory::HIDDEN);
@@ -964,6 +969,22 @@ bool AppInitParameterInteraction()
     // ********************************************************* Step 2: parameter interactions
 
     // also see: InitParameterInteraction()
+
+    // Experimental Features Mode
+    // Set this early so that experimental features are correctly enabled/disabled
+    fExperimentalMode = gArgs.GetBoolArg("-experimentalfeatures", false);
+
+    // Fail early if user has set experimental options without the global flag
+    if (!fExperimentalMode) {
+        if (gArgs.GetBoolArg("-developerencryptwallet", false)) {
+            return InitError("-developerencryptwallet requires -experimentalfeatures.");
+        }
+        else if (gArgs.GetBoolArg("-paymentdisclosure", false)) {
+            return InitError("-paymentdisclosure requires -experimentalfeatures.");
+        } else if (gArgs.GetBoolArg("-zmergetoaddress", false)) {
+            return InitError("-zmergetoaddress requires -experimentalfeatures.");
+        }
+    }
 
     if (!fs::is_directory(GetBlocksDir(false))) {
         return InitError(strprintf(_("Specified blocks directory \"%s\" does not exist.\n"), gArgs.GetArg("-blocksdir", "").c_str()));
