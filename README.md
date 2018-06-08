@@ -1,6 +1,18 @@
 Bitcoin Private Rebase
 =====================================
 
+IN DEVELOPMENT - FOR TESTING ONLY - DO NOT USE IN PRODUCTION
+===========
+This is currently in development software, not all consensus rules have been implemented. You should NOT rely on this in production yet, for production use cases please use https://github.com/BTCPrivate/BitcoinPrivate/
+
+Development Status
+------
+This should build on linux and sync the full BTCP mainnet chain. Wallet code and test suite is not fully working yet.
+
+Build Instructions
+-------
+Only linux builds have been reasonably tested. `scripts/build/sh` should build all the dependencies and bootstrap a linux build. If you want to manually configure, you must pass --disable-wallet currently.
+
 https://btcprivate.org
 
 What is the Bitcoin Private Rebase?
