@@ -1,21 +1,42 @@
-<!-- This issue tracker is only for technical issues related to Bitcoin Core.
+<!--- Remove text and sections that do not apply -->
 
-General bitcoin questions and/or support requests are best directed to the Bitcoin StackExchange at https://bitcoin.stackexchange.com.
+This issue tracker is only for technical issues related to btcpd.
 
-For reporting security issues, please read instructions at https://bitcoincore.org/en/contact/.
+General Bitcoin Private questions and/or support requests and are best directed to the [BTCP Support Website](https://support.btcprivate.org/).
 
-If the node is "stuck" during sync or giving "block checksum mismatch" errors, please ensure your hardware is stable by running memtest and observe CPU temperature with a load-test tool such as linpack before creating an issue! -->
+For reporting Zcash-specific security vulnerabilities or for sensitive discussions with their security team, please contact [security@z.cash](mailto:security@z.cash). You can use the [GPG key](https://z.cash/gpg-pubkeys/security.asc) (fingerprint: `AF85 0445 546C 18B7 86F9  2C62 88FB 8B86 D8B5 A68C`) to send an encrypted message. The key and fingerprint are duplicated on our [Public Keys page](https://z.cash/support/pubkeys.html).
 
-<!-- Describe the issue -->
-<!--- What behavior did you expect? -->
+### Describe the issue
+Please provide a general summary of the issue you're experiencing
 
-<!--- What was the actual behavior (provide screenshots if the issue is GUI-related)? -->
+### Can you reliably reproduce the issue?
+#### If so, please list the steps to reproduce below:
+1.
+2.
+3.
 
-<!--- How reliably can you reproduce the issue, what are the steps to do so? -->
+### Expected behaviour
+Tell us what should happen
 
-<!-- What version of Bitcoin Core are you using, where did you get it (website, self-compiled, etc)? -->
+### Actual behaviour + errors
+Tell us what happens instead including any noticable error output (any messages displayed on-screen when e.g. a crash occurred)
 
-<!-- What type of machine are you observing the error on (OS/CPU and disk type)? -->
+### The version of Bitcoin Private you were using:
+Run `btpcd --version` to find out
 
-<!-- Any extra information that might be useful in the debugging process. -->
-<!--- This is normally the contents of a `debug.log` or `config.log` file. Raw text or a link to a pastebin type site are preferred. -->
+### Machine specs:
+- OS name + version:
+- CPU:
+- RAM:
+- Disk size:
+- Disk Type (HD/SDD):
+- Linux kernel version (uname -a):
+- Compiler version (gcc -version):
+
+### Any extra information that might be useful in the debugging process.
+This includes the relevant contents of `~/.btcprivate/debug.log`. You can paste raw text, attach the file directly in the issue or link to the text via a pastebin type site.
+Please also include any non-standard things you did during compilation (extra flags, dependency version changes etc.) if applicable.
+
+### Do you have a back up of `~/.btcprivate` directory and/or take a VM snapshot?
+- Backing up / making a copy of the `~/.btcprivate` directory might help make the problem reproducible. Please redact appropriately.
+- Taking a VM snapshot is really helpful for interactively testing fixes
