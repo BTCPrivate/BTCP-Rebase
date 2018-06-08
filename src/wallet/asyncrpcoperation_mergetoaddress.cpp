@@ -210,9 +210,11 @@ bool AsyncRPCOperation_mergetoaddress::main_impl()
     size_t limit = (size_t)gArgs.GetArg("-mempooltxinputlimit", 0);
     {
         LOCK(cs_main);
+        /** TODO BTCP Upgrade logic
         if (NetworkUpgradeActive(chainActive.Height() + 1, Params().GetConsensus(), Consensus::UPGRADE_OVERWINTER)) {
             limit = 0;
         }
+        */
     }
     if (limit > 0 && numInputs > limit) {
         throw JSONRPCError(RPC_WALLET_ERROR,
@@ -267,7 +269,8 @@ bool AsyncRPCOperation_mergetoaddress::main_impl()
     // Grab the current consensus branch ID
     {
         LOCK(cs_main);
-        consensusBranchId_ = CurrentEpochBranchId(chainActive.Height() + 1, Params().GetConsensus());
+        //TODO BTCP upgrade logic
+        //consensusBranchId_ = CurrentEpochBranchId(chainActive.Height() + 1, Params().GetConsensus());
     }
 
     /**
@@ -793,7 +796,7 @@ UniValue AsyncRPCOperation_mergetoaddress::perform_joinsplit(
     // Empty output script.
     CScript scriptCode;
     CTransaction signTx(mtx);
-    uint256 dataToBeSigned = SignatureHash(scriptCode, signTx, NOT_AN_INPUT, SIGHASH_ALL, 0, consensusBranchId_);
+    uint256 dataToBeSigned = SignatureHash(scriptCode, signTx, NOT_AN_INPUT, SIGHASH_ALL, 0);
 
     // Add the signature
     if (!(crypto_sign_detached(&mtx.joinSplitSig[0], NULL,

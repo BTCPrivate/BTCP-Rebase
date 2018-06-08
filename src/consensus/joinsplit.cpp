@@ -10,7 +10,7 @@ bool CheckTransactionJoinsplits(const CTransaction& tx, CValidationState &state)
 
         try {
             dataToBeSigned = SignatureHash(scriptCode, tx, NOT_AN_INPUT,
-                                           hashtype, (flags & SCRIPT_VERIFY_FORKID) ? FORKID_IN_USE : FORKID_NONE);
+                                           hashtype, (flags & SCRIPT_VERIFY_FORKID) ? FORKID_IN_USE : FORKID_NONE); //TODO amount, sigversion=SigVersion::BASE, txdata=nullptr
         } catch (std::logic_error ex) {
             return state.DoS(100, error("CheckTransaction(): error computing signature hash"),
                              REJECT_INVALID, "error-computing-signature-hash");

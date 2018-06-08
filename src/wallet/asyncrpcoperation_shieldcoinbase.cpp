@@ -188,9 +188,11 @@ bool AsyncRPCOperation_shieldcoinbase::main_impl() {
     size_t limit = (size_t)gArgs.GetArg("-mempooltxinputlimit", 0);
     {
         LOCK(cs_main);
+        /** TODO BTCP Upgrade Logic
         if (NetworkUpgradeActive(chainActive.Height() + 1, Params().GetConsensus(), Consensus::UPGRADE_OVERWINTER)) {
             limit = 0;
         }
+        */
     }
     if (limit>0 && numInputs > limit) {
         throw JSONRPCError(RPC_WALLET_ERROR,
@@ -309,13 +311,15 @@ void AsyncRPCOperation_shieldcoinbase::sign_send_raw_transaction(UniValue obj)
 
 
 UniValue AsyncRPCOperation_shieldcoinbase::perform_joinsplit(ShieldCoinbaseJSInfo & info) {
-    uint32_t consensusBranchId;
+    //uint32_t consensusBranchId;
+    /** TODO BTCP upgrade logic
     uint256 anchor;
     {
         LOCK(cs_main);
         consensusBranchId = CurrentEpochBranchId(chainActive.Height() + 1, Params().GetConsensus());
         anchor = pcoinsTip->GetBestAnchor();
     }
+    */
 
 
     if (anchor.IsNull()) {
