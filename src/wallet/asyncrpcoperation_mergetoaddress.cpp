@@ -153,7 +153,7 @@ void AsyncRPCOperation_mergetoaddress::main()
 
 #ifdef ENABLE_MINING
 #ifdef ENABLE_WALLET
-    //GenerateBitcoins(gArgs.GetBoolArg("-gen", false), pwalletMain, gArgs.GetArg("-genproclimit", 1));
+    //GenerateBitcoins(gArgs.GetBoolArg("-gen", false), pwallet_, gArgs.GetArg("-genproclimit", 1));
 #else
     //GenerateBitcoins(gArgs.GetBoolArg("-gen", false), gArgs.GetArg("-genproclimit", 1));
 #endif
@@ -338,13 +338,13 @@ bool AsyncRPCOperation_mergetoaddress::main_impl()
     // change upon arrival of new blocks which contain joinsplit transactions.  This is likely
     // to happen as creating a chained joinsplit transaction can take longer than the block interval.
     {
-        LOCK2(cs_main, pwalletMain->cs_wallet);
+        LOCK2(cs_main, pwallet_->cs_wallet);
         for (auto t : noteInputs_) {
             JSOutPoint jso = std::get<0>(t);
             std::vector<JSOutPoint> vOutPoints = {jso};
             uint256 inputAnchor;
             std::vector<boost::optional<ZCIncrementalWitness>> vInputWitnesses;
-            pwalletMain->GetNoteWitnesses(vOutPoints, vInputWitnesses, inputAnchor);
+            pwallet_->GetNoteWitnesses(vOutPoints, vInputWitnesses, inputAnchor);
             jsopWitnessAnchorMap[jso.ToString()] = MergeToAddressWitnessAnchorData{vInputWitnesses[0], inputAnchor};
         }
     }
@@ -426,7 +426,7 @@ bool AsyncRPCOperation_mergetoaddress::main_impl()
         // Consume change as the first input of the JoinSplit.
         //
         if (jsChange > 0) {
-            LOCK2(cs_main, pwalletMain->cs_wallet);
+            LOCK2(cs_main, pwallet_->cs_wallet);
 
             // Update tree state with previous joinsplit
             ZCIncrementalMerkleTree tree;
@@ -516,8 +516,8 @@ bool AsyncRPCOperation_mergetoaddress::main_impl()
             int wtxHeight = -1;
             int wtxDepth = -1;
             {
-                LOCK2(cs_main, pwalletMain->cs_wallet);
-                const CWalletTx& wtx = pwalletMain->mapWallet[jso.hash];
+                LOCK2(cs_main, pwallet_->cs_wallet);
+                const CWalletTx& wtx = pwallet_->mapWallet[jso.hash];
                 // Zero confirmation notes belong to transactions which have not yet been mined
                 if (mapBlockIndex.find(wtx.hashBlock) == mapBlockIndex.end()) {
                     throw JSONRPCError(RPC_WALLET_ERROR, strprintf("mapBlockIndex does not contain block hash %s", wtx.hashBlock.ToString()));
@@ -713,7 +713,7 @@ UniValue AsyncRPCOperation_mergetoaddress::perform_joinsplit(MergeToAddressJSInf
     uint256 anchor;
     {
         LOCK(cs_main);
-        pwalletMain->GetNoteWitnesses(outPoints, witnesses, anchor);
+        pwallet_->GetNoteWitnesses(outPoints, witnesses, anchor);
     }
     return perform_joinsplit(info, witnesses, anchor);
 }
@@ -923,9 +923,9 @@ UniValue AsyncRPCOperation_mergetoaddress::getStatus() const
  * Lock input utxos
  */
  void AsyncRPCOperation_mergetoaddress::lock_utxos() {
-    LOCK2(cs_main, pwalletMain->cs_wallet);
+    LOCK2(cs_main, pwallet_->cs_wallet);
     for (auto utxo : utxoInputs_) {
-        pwalletMain->LockCoin(std::get<0>(utxo));
+        pwallet_->LockCoin(std::get<0>(utxo));
     }
 }
 
@@ -933,9 +933,9 @@ UniValue AsyncRPCOperation_mergetoaddress::getStatus() const
  * Unlock input utxos
  */
 void AsyncRPCOperation_mergetoaddress::unlock_utxos() {
-    LOCK2(cs_main, pwalletMain->cs_wallet);
+    LOCK2(cs_main, pwallet_->cs_wallet);
     for (auto utxo : utxoInputs_) {
-        pwalletMain->UnlockCoin(std::get<0>(utxo));
+        pwallet_->UnlockCoin(std::get<0>(utxo));
     }
 }
 
@@ -944,9 +944,9 @@ void AsyncRPCOperation_mergetoaddress::unlock_utxos() {
  * Lock input notes
  */
  void AsyncRPCOperation_mergetoaddress::lock_notes() {
-    LOCK2(cs_main, pwalletMain->cs_wallet);
+    LOCK2(cs_main, pwallet_->cs_wallet);
     for (auto note : noteInputs_) {
-        pwalletMain->LockNote(std::get<0>(note));
+        pwallet_->LockNote(std::get<0>(note));
     }
 }
 
@@ -954,8 +954,8 @@ void AsyncRPCOperation_mergetoaddress::unlock_utxos() {
  * Unlock input notes
  */
 void AsyncRPCOperation_mergetoaddress::unlock_notes() {
-    LOCK2(cs_main, pwalletMain->cs_wallet);
+    LOCK2(cs_main, pwallet_->cs_wallet);
     for (auto note : noteInputs_) {
-        pwalletMain->UnlockNote(std::get<0>(note));
+        pwallet_->UnlockNote(std::get<0>(note));
     }
 }
