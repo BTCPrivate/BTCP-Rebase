@@ -484,20 +484,20 @@ UniValue AsyncRPCOperation_shieldcoinbase::getStatus() const {
  * Lock input utxos
  */
  void AsyncRPCOperation_shieldcoinbase::lock_utxos() {
-    LOCK2(cs_main, pwalletMain->cs_wallet);
-    for (auto utxo : inputs_) {
-        COutPoint outpt(utxo.txid, utxo.vout);
-        pwalletMain->LockCoin(outpt);
-    }
+     LOCK2(cs_main, pwallet_->cs_wallet);
+     for (auto utxo : inputs_) {
+         COutPoint outpt(utxo.txid, utxo.vout);
+         pwallet_->LockCoin(outpt);
+     }
 }
 
 /**
  * Unlock input utxos
  */
 void AsyncRPCOperation_shieldcoinbase::unlock_utxos() {
-    LOCK2(cs_main, pwalletMain->cs_wallet);
+    LOCK2(cs_main, pwallet_->cs_wallet);
     for (auto utxo : inputs_) {
         COutPoint outpt(utxo.txid, utxo.vout);
-        pwalletMain->UnlockCoin(outpt);
+        pwallet_->UnlockCoin(outpt);
     }
 }
