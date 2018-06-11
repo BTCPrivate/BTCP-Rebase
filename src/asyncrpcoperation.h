@@ -41,8 +41,7 @@ typedef enum class operationStateEnum {
 
 class AsyncRPCOperation {
 public:
-    AsyncRPCOperation();
-    AsyncRPCOperation(CWallet* const wallet);
+    AsyncRPCOperation(CWallet* const wallet = nullptr);
     virtual ~AsyncRPCOperation();
 
     // You must implement this method in your subclass.

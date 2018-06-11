@@ -27,17 +27,6 @@ std::map<OperationStatus, std::string> OperationStatusMap = {
 /**
  * Every operation instance should have a globally unique id
  */
- AsyncRPCOperation::AsyncRPCOperation() :
-         pwallet_(nullptr), error_code_(0), error_message_()
-{
-  // Set a unique reference for each operation
-  boost::uuids::uuid uuid = uuidgen();
-  id_ = "opid-" + boost::uuids::to_string(uuid);
-  creation_time_ = (int64_t)time(NULL);
-
-  set_state(OperationStatus::READY);
-}
-
 AsyncRPCOperation::AsyncRPCOperation(CWallet* const wallet) :
         pwallet_(wallet), error_code_(0), error_message_()
 {
