@@ -911,6 +911,12 @@ public:
     void UnlockAllCoins() EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
     void ListLockedCoins(std::vector<COutPoint>& vOutpts) const EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
 
+    bool IsLockedNote(const JSOutPoint& outpt) const EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
+    void LockNote(const JSOutPoint& output) EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
+    void UnlockNote(const JSOutPoint& output) EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
+    void UnlockAllNotes() EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
+    std::vector<JSOutPoint> ListLockedNotes() const EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
+
     /*
      * Rescan abort properties
      */

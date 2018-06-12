@@ -3801,6 +3801,41 @@ void CWallet::ListLockedCoins(std::vector<COutPoint>& vOutpts) const
     }
 }
 
+// Note Locking Operations
+
+void CWallet::LockNote(const JSOutPoint& output)
+{
+    AssertLockHeld(cs_wallet); // setLockedNotes
+    setLockedNotes.insert(output);
+}
+
+void CWallet::UnlockNote(const JSOutPoint& output)
+{
+    AssertLockHeld(cs_wallet); // setLockedNotes
+    setLockedNotes.erase(output);
+}
+
+void CWallet::UnlockAllNotes()
+{
+    AssertLockHeld(cs_wallet); // setLockedNotes
+    setLockedNotes.clear();
+}
+
+bool CWallet::IsLockedNote(const JSOutPoint& outpt) const
+{
+    AssertLockHeld(cs_wallet); // setLockedNotes
+
+    return (setLockedNotes.count(outpt) > 0);
+}
+
+std::vector<JSOutPoint> CWallet::ListLockedNotes() const
+{
+    AssertLockHeld(cs_wallet); // setLockedNotes
+    std::vector<JSOutPoint> vOutpts(setLockedNotes.begin(), setLockedNotes.end());
+    return vOutpts;
+}
+
+
 /** @} */ // end of Actions
 
 void CWallet::GetKeyBirthTimes(std::map<CTxDestination, int64_t> &mapKeyBirth) const {
