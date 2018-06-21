@@ -303,7 +303,6 @@ libbitcoin_wallet_a_SOURCES = \
   wallet/init.cpp \
   paymentdisclosure.cpp \
   paymentdisclosuredb.cpp \
-  wallet/rpcdisclosure.cpp \
   wallet/rpcdump.cpp \
   wallet/rpcwallet.cpp \
   wallet/wallet.cpp \

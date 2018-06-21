@@ -21,7 +21,7 @@
 
 // Default transaction fee if caller does not specify one.
 #define MERGE_TO_ADDRESS_OPERATION_DEFAULT_MINERS_FEE 10000
-
+#if 0
 using namespace libzcash;
 
 // Input UTXO is a tuple of txid, vout, amount
@@ -191,3 +191,4 @@ public:
 
 
 #endif /* ASYNCRPCOPERATION_MERGETOADDRESS_H */
+#endif

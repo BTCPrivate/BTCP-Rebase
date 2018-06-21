@@ -3,7 +3,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include <wallet/asyncrpcoperation_mergetoaddress.h>
-
+#if 0
 #include <amount.h>
 #include <asyncrpcqueue.h>
 #include <core_io.h>
@@ -961,3 +961,4 @@ void AsyncRPCOperation_mergetoaddress::unlock_notes() {
         pwallet_->UnlockNote(std::get<0>(note));
     }
 }
+#endif
