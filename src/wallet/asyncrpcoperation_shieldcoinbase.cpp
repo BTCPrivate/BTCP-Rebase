@@ -312,14 +312,12 @@ void AsyncRPCOperation_shieldcoinbase::sign_send_raw_transaction(UniValue obj)
 
 UniValue AsyncRPCOperation_shieldcoinbase::perform_joinsplit(ShieldCoinbaseJSInfo & info) {
     //uint32_t consensusBranchId;
-    /** TODO BTCP upgrade logic
     uint256 anchor;
     {
         LOCK(cs_main);
-        consensusBranchId = CurrentEpochBranchId(chainActive.Height() + 1, Params().GetConsensus());
+        //consensusBranchId = CurrentEpochBranchId(chainActive.Height() + 1, Params().GetConsensus());
         anchor = pcoinsTip->GetBestAnchor();
     }
-    */
 
 
     if (anchor.IsNull()) {

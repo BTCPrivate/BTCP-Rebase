@@ -312,11 +312,9 @@ bool AsyncRPCOperation_sendmany::main_impl() {
         size_t limit = (size_t)gArgs.GetArg("-mempooltxinputlimit", 0);
         {
             LOCK(cs_main);
-            /** TODO BTCP Upgrade logic
             if (NetworkUpgradeActive(chainActive.Height() + 1, Params().GetConsensus(), Consensus::UPGRADE_OVERWINTER)) {
                 limit = 0;
             }
-            */
         }
         if (limit > 0) {
             size_t n = t_inputs_.size();
