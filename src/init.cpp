@@ -766,14 +766,16 @@ static void ZC_LoadParams()
     boost::filesystem::path pk_path = ZC_GetParamsDir() / "sprout-proving.key";
     boost::filesystem::path vk_path = ZC_GetParamsDir() / "sprout-verifying.key";
 
-    uiInterface.ThreadSafeMessageBox(strprintf(
-        _("Cannot find the Zcash network parameters in the following directory:\n"
-          "%s\n"
-          "Please run 'zcash-fetch-params' or './zcutil/fetch-params.sh' and then restart."),
-            ZC_GetParamsDir()),
-        "", CClientUIInterface::MSG_ERROR);
-    StartShutdown();
-    return;
+     if (!(boost::filesystem::exists(pk_path) && boost::filesystem::exists(vk_path))) {
+        uiInterface.ThreadSafeMessageBox(strprintf(
+            _("Cannot find the Zcash network parameters in the following directory:\n"
+              "%s\n"
+              "Please run 'zcash-fetch-params' or './zcutil/fetch-params.sh' and then restart."),
+                ZC_GetParamsDir()),
+            "", CClientUIInterface::MSG_ERROR);
+        StartShutdown();
+        return;
+    }
 
     LogPrintf("Loading verifying key from %s\n", vk_path.string().c_str());
     gettimeofday(&tv_start, 0);

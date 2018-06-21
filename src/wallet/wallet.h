@@ -873,6 +873,8 @@ public:
     std::map<CTxDestination, CAddressBookData> mapAddressBook;
 
     std::set<COutPoint> setLockedCoins;
+    std::set<JSOutPoint> setLockedNotes;
+
 
     const CWalletTx* GetWalletTx(const uint256& hash) const;
 

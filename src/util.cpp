@@ -750,9 +750,7 @@ static boost::filesystem::path ZC_GetBaseParamsDir()
         pathRet = fs::path(pszHome);
 #ifdef MAC_OSX
     // Mac
-    pathRet /= "Library/Application Support";
-    TryCreateDirectory(pathRet);
-    return pathRet / "ZcashParams";
+    pathRet / "Library/Application Support/ZcashParams";
 #else
     // Unix
     return pathRet / ".zcash-params";
