@@ -1,14 +1,14 @@
 [Desktop Entry]
 Version=1.0
-Name=Bitcoin Core
-Comment=Connect to the Bitcoin P2P Network
-Comment[de]=Verbinde mit dem Bitcoin peer-to-peer Netzwerk
-Comment[fr]=Bitcoin, monnaie virtuelle cryptographique pair à pair
-Comment[tr]=Bitcoin, eşten eşe kriptografik sanal para birimi
+Name=Bitcoin Private
+Comment=Connect to the Bitcoin Private P2P Network
+Comment[de]=Verbinde mit dem Bitcoin Private peer-to-peer Netzwerk
+Comment[fr]=Bitcoin Private, monnaie virtuelle cryptographique pair à pair
+Comment[tr]=Bitcoin Private, eşten eşe kriptografik sanal para birimi
 Exec=bitcoin-qt %u
 Terminal=false
 Type=Application
 Icon=bitcoin128
-MimeType=x-scheme-handler/bitcoin;
+MimeType=x-scheme-handler/bitcoinprivate;
 Categories=Office;Finance;P2P;Network;Qt;
 StartupWMClass=Bitcoin-qt
