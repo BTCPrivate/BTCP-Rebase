@@ -192,7 +192,8 @@ bool CCoinsViewDB::BatchWrite(CCoinsMap &mapCoins,
     // In the last batch, mark the database as consistent with hashBlock again.
     batch.Erase(DB_HEAD_BLOCKS);
     batch.Write(DB_BEST_BLOCK, hashBlock);
-    batch.Write(DB_BEST_ANCHOR, hashAnchor);
+    if(!hashAnchor.IsNull())
+        batch.Write(DB_BEST_ANCHOR, hashAnchor);
 
     LogPrint(BCLog::COINDB, "Writing final batch of %.2f MiB\n", batch.SizeEstimate() * (1.0 / 1048576.0));
     bool ret = db.WriteBatch(batch);
