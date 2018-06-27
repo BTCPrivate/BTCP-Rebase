@@ -355,8 +355,8 @@ public:
 
         nPruneAfterHeight = 1000;
 
-        nEquihashN = 48;
-        nEquihashK = 5;
+        nEquihashN = 200;
+        nEquihashK = 9;
 
         uint256 nNonce = uint256S("0000000000000000000000000000000000000000000000000000000000000009");
         genesis = CreateGenesisBlock(1482971059, nNonce, 0x200f0f0f, 4, 0, GenesisSolutions::REGTEST);
