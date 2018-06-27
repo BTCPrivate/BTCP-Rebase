@@ -258,7 +258,7 @@ public:
         genesis = CreateGenesisBlock(1479443947, nNonce, 0x2007ffff, 4, 0, GenesisSolutions::TESTNET);
         consensus.hashGenesisBlock = genesis.GetHash();
         assert(genesis.hashMerkleRoot == uint256S("0x19612bcf00ea7611d315d7f43554fa983c6e8c30cba17e52c679e0e80abf7d42"));
-        assert(consensus.hashGenesisBlock == uint256S("0x0007104ccda289427919efc39dc9e4d499804b7bebc22df55f8b834301260602"));
+        assert(consensus.hashGenesisBlock == uint256S("0x03e1c4bb705c871bf9bfda3e74b7f8f86bff267993c215a89d5795e3708e5e1f"));
 
         vSeeds.emplace_back("dnsseed.testnet.btcprivate.org");
 
