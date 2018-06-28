@@ -27,7 +27,7 @@ std::map<OperationStatus, std::string> OperationStatusMap = {
 /**
  * Every operation instance should have a globally unique id
  */
-AsyncRPCOperation::AsyncRPCOperation(CWallet* const wallet) :
+AsyncRPCOperation::AsyncRPCOperation(std::shared_ptr<CWallet> const wallet) :
         pwallet_(wallet), error_code_(0), error_message_()
 {
     // Set a unique reference for each operation

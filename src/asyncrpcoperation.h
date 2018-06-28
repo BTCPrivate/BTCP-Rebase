@@ -41,7 +41,7 @@ typedef enum class operationStateEnum {
 
 class AsyncRPCOperation {
 public:
-    AsyncRPCOperation(CWallet* const wallet = nullptr);
+    AsyncRPCOperation(std::shared_ptr<CWallet> const wallet = nullptr);
     virtual ~AsyncRPCOperation();
 
     // You must implement this method in your subclass.
@@ -119,7 +119,7 @@ protected:
     std::chrono::time_point<std::chrono::system_clock> start_time_, end_time_;
 
     // Wallet of interest for this operation
-    CWallet* pwallet_;
+    std::shared_ptr<CWallet> pwallet_;
 
     void start_execution_clock();
     void stop_execution_clock();
