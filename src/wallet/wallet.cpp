@@ -1813,6 +1813,7 @@ CBlockIndex* CWallet::ScanForWalletTransactions(CBlockIndex* pindexStart, CBlock
             } else {
                 ret = pindex;
             }
+            
             if (pindex == pindexStop) {
                 break;
             }

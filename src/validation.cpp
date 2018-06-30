@@ -1883,8 +1883,6 @@ bool CChainState::ConnectBlock(const CBlock& block, CValidationState& state, CBl
             // Before the genesis block, there was an empty tree
             ZCIncrementalMerkleTree tree;
             pindex->hashAnchor = tree.root();
-            // The genesis block contained no JoinSplits
-            pindex->hashAnchorEnd = pindex->hashAnchor;
         }
 
         return true;
@@ -2041,9 +2039,7 @@ bool CChainState::ConnectBlock(const CBlock& block, CValidationState& state, CBl
     }
 
     view.PushAnchor(tree);
-    if (!fJustCheck) {
-        pindex->hashAnchorEnd = tree.root();
-    }
+
     blockundo.old_tree_root = old_tree_root;
 
     int64_t nTime3 = GetTimeMicros(); nTimeConnect += nTime3 - nTime2;
@@ -3972,21 +3968,7 @@ bool static LoadBlockIndexDB(const CChainParams& chainparams)
     // Check whether we need to continue reindexing
     bool fReindexing = false;
     pblocktree->ReadReindexing(fReindexing);
-    if(fReindexing) fReindex = true;
-
-    // Fill in-memory data
-    for(const std::pair<uint256, CBlockIndex*>& item : mapBlockIndex)
-    {
-        CBlockIndex* pindex = item.second;
-        // - This relationship will always be true even if pprev has multiple
-        //   children, because hashAnchor is technically a property of pprev,
-        //   not its children.
-        // - This will miss chain tips; we handle the best tip below, and other
-        //   tips will be handled by ConnectTip during a re-org.
-        if (pindex->pprev) {
-            pindex->pprev->hashAnchorEnd = pindex->hashAnchor;
-        }
-    }
+    if (fReindexing) fReindex = true;
 
     return true;
 }
@@ -4014,8 +3996,6 @@ bool LoadChainTip(const CChainParams& chainparams)
         return false;
     }
     chainActive.SetTip(pindex);
-    // Set hashAnchorEnd for the end of best chain
-    pindex->hashAnchorEnd = pcoinsTip->GetBestAnchor();
 
     g_chainstate.PruneBlockIndexCandidates();
 
