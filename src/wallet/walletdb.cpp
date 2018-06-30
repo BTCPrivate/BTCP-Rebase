@@ -153,7 +153,7 @@ bool WalletBatch::WriteMinVersion(int nVersion)
 // Z
 bool WalletBatch::WriteWitnessCacheSize(int64_t nWitnessCacheSize)
 {
-    return Write(std::string("witnesscachesize"), nWitnessCacheSize);
+    return WriteIC(std::string("witnesscachesize"), nWitnessCacheSize);
 }
 
 bool WalletBatch::ReadAccount(const std::string& strAccount, CAccount& account)
