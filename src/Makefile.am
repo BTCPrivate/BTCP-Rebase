@@ -31,7 +31,7 @@ LIBBITCOIN_COMMON=libbitcoin_common.a
 LIBBITCOIN_CONSENSUS=libbitcoin_consensus.a
 LIBBITCOIN_CLI=libbitcoin_cli.a
 LIBBITCOIN_UTIL=libbitcoin_util.a
-LIBBITCOIN_CRYPTO=crypto/libbitcoin_crypto.a
+LIBBITCOIN_CRYPTO_BASE=crypto/libbitcoin_crypto_base.a
 LIBBITCOINQT=qt/libbitcoinqt.a
 LIBSECP256K1=secp256k1/libsecp256k1.la
 LIBSNARK=snark/libsnark.a
@@ -45,6 +45,16 @@ LIBBITCOINCONSENSUS=libbitcoinconsensus.la
 endif
 if ENABLE_WALLET
 LIBBITCOIN_WALLET=libbitcoin_wallet.a
+endif
+
+LIBBITCOIN_CRYPTO= $(LIBBITCOIN_CRYPTO_BASE)
+if ENABLE_SSE41
+LIBBITCOIN_CRYPTO_SSE41 = crypto/libbitcoin_crypto_sse41.a
+LIBBITCOIN_CRYPTO += $(LIBBITCOIN_CRYPTO_SSE41)
+endif
+if ENABLE_AVX2
+LIBBITCOIN_CRYPTO_AVX2 = crypto/libbitcoin_crypto_avx2.a
+LIBBITCOIN_CRYPTO += $(LIBBITCOIN_CRYPTO_AVX2)
 endif
 
 $(LIBSECP256K1): $(wildcard secp256k1/src/*) $(wildcard secp256k1/include/*)
@@ -134,6 +144,7 @@ BITCOIN_CORE_H = \
   fs.h \
   httprpc.h \
   httpserver.h \
+  index/base.h \
   index/txindex.h \
   indirectmap.h \
   init.h \
@@ -245,6 +256,7 @@ libbitcoin_server_a_SOURCES = \
   fork.cpp \
   httprpc.cpp \
   httpserver.cpp \
+  index/base.cpp \
   index/txindex.cpp \
   init.cpp \
   dbwrapper.cpp \
@@ -266,6 +278,7 @@ libbitcoin_server_a_SOURCES = \
   rpc/net.cpp \
   rpc/rawtransaction.cpp \
   rpc/server.cpp \
+  rpc/util.cpp \
   script/sigcache.cpp \
   timedata.cpp \
   torcontrol.cpp \
@@ -312,9 +325,9 @@ libbitcoin_wallet_a_SOURCES = \
   $(BITCOIN_CORE_H)
 
 # crypto primitives library
-crypto_libbitcoin_crypto_a_CPPFLAGS = $(AM_CPPFLAGS)
-crypto_libbitcoin_crypto_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
-crypto_libbitcoin_crypto_a_SOURCES = \
+crypto_libbitcoin_crypto_base_a_CPPFLAGS = $(AM_CPPFLAGS)
+crypto_libbitcoin_crypto_base_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
+crypto_libbitcoin_crypto_base_a_SOURCES = \
   crypto/aes.cpp \
   crypto/aes.h \
   crypto/chacha20.h \
@@ -337,19 +350,31 @@ crypto_libbitcoin_crypto_a_SOURCES = \
   crypto/sha512.h
 
 if USE_ASM
-crypto_libbitcoin_crypto_a_SOURCES += crypto/sha256_sse4.cpp
+crypto_libbitcoin_crypto_base_a_SOURCES += crypto/sha256_sse4.cpp
 endif
+
+crypto_libbitcoin_crypto_sse41_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
+crypto_libbitcoin_crypto_sse41_a_CPPFLAGS = $(AM_CPPFLAGS)
+crypto_libbitcoin_crypto_sse41_a_CXXFLAGS += $(SSE41_CXXFLAGS)
+crypto_libbitcoin_crypto_sse41_a_CPPFLAGS += -DENABLE_SSE41
+crypto_libbitcoin_crypto_sse41_a_SOURCES = crypto/sha256_sse41.cpp
+
+crypto_libbitcoin_crypto_avx2_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
+crypto_libbitcoin_crypto_avx2_a_CPPFLAGS = $(AM_CPPFLAGS)
+crypto_libbitcoin_crypto_avx2_a_CXXFLAGS += $(AVX2_CXXFLAGS)
+crypto_libbitcoin_crypto_avx2_a_CPPFLAGS += -DENABLE_AVX2
+crypto_libbitcoin_crypto_avx2_a_SOURCES = crypto/sha256_avx2.cpp
 
 if ENABLE_MINING
 EQUIHASH_TROMP_SOURCES = \
-  pow/tromp/equi_miner.h \
-  pow/tromp/equi.h \
-  pow/tromp/osx_barrier.h
+pow/tromp/equi_miner.h \
+pow/tromp/equi.h \
+pow/tromp/osx_barrier.h
 
 crypto_libbitcoin_crypto_a_CPPFLAGS += \
-  -DEQUIHASH_TROMP_ATOMIC
+-DEQUIHASH_TROMP_ATOMIC
 crypto_libbitcoin_crypto_a_SOURCES += \
-  ${EQUIHASH_TROMP_SOURCES}
+${EQUIHASH_TROMP_SOURCES}
 endif
 
 # consensus: shared between all executables that validate any consensus rules.
@@ -435,7 +460,6 @@ libbitcoin_util_a_SOURCES = \
   logging.cpp \
   random.cpp \
   rpc/protocol.cpp \
-  rpc/util.cpp \
   support/cleanse.cpp \
   sync.cpp \
   threadinterrupt.cpp \
@@ -562,7 +586,7 @@ libzcash_a_CPPFLAGS += -DMONTGOMERY_OUTPUT
 # bitcoinconsensus library #
 if BUILD_BITCOIN_LIBS
 include_HEADERS = script/bitcoinconsensus.h
-libbitcoinconsensus_la_SOURCES = $(crypto_libbitcoin_crypto_a_SOURCES) $(libbitcoin_consensus_a_SOURCES)
+libbitcoinconsensus_la_SOURCES = $(crypto_libbitcoin_crypto_base_a_SOURCES) $(libbitcoin_consensus_a_SOURCES)
 
 if GLIBC_BACK_COMPAT
   libbitcoinconsensus_la_SOURCES += compat/glibc_compat.cpp
