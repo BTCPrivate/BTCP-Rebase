@@ -34,6 +34,8 @@ static const char DB_FLAG = 'F';
 static const char DB_REINDEX_FLAG = 'R';
 static const char DB_LAST_BLOCK = 'l';
 
+static const char DB_WITNESS_CACHE_SIZE = 'w';
+
 namespace {
 
 struct CoinEntry {
@@ -516,6 +518,11 @@ bool TxIndexDB::ReadBestBlock(CBlockLocator& locator) const
 bool TxIndexDB::WriteBestBlock(const CBlockLocator& locator)
 {
     return Write(DB_BEST_BLOCK, locator);
+}
+
+bool TxIndexDB::WriteWitnessCacheSize(int64_t nWitnessCacheSize)
+{
+    return Write(DB_WITNESS_CACHE_SIZE, nWitnessCacheSize);
 }
 
 /*

@@ -319,6 +319,7 @@ public:
      *                         2014 (removed in commit 93a18a3)
      */
     mapValue_t mapValue;
+    mapNoteData_t mapNoteData; // Z
     std::vector<std::pair<std::string, std::string> > vOrderForm;
     unsigned int fTimeReceivedIsTxTime;
     unsigned int nTimeReceived; //!< time received by this node
@@ -371,6 +372,7 @@ public:
     {
         pwallet = pwalletIn;
         mapValue.clear();
+        mapNoteData.clear();
         vOrderForm.clear();
         fTimeReceivedIsTxTime = false;
         nTimeReceived = 0;
@@ -404,6 +406,7 @@ public:
     {
         char fSpent = false;
         mapValue_t mapValueCopy = mapValue;
+        mapNoteData_t mapNoteDataCopy = mapNoteData;
 
         mapValueCopy["fromaccount"] = strFromAccount;
         WriteOrderPos(nOrderPos, mapValueCopy);
@@ -412,8 +415,8 @@ public:
         }
 
         s << static_cast<const CMerkleTx&>(*this);
-        std::vector<CMerkleTx> vUnused; //!< Used to be vtxPrev
-        s << vUnused << mapValueCopy << vOrderForm << fTimeReceivedIsTxTime << nTimeReceived << fFromMe << fSpent;
+        std::vector<CMerkleTx> vUnused;
+        s << vUnused << mapValueCopy << mapNoteDataCopy << vOrderForm << fTimeReceivedIsTxTime << nTimeReceived << fFromMe << fSpent;
     }
 
     template<typename Stream>
@@ -423,8 +426,8 @@ public:
         char fSpent;
 
         s >> static_cast<CMerkleTx&>(*this);
-        std::vector<CMerkleTx> vUnused; //!< Used to be vtxPrev
-        s >> vUnused >> mapValue >> vOrderForm >> fTimeReceivedIsTxTime >> nTimeReceived >> fFromMe >> fSpent;
+        std::vector<CMerkleTx> vUnused;
+        s >> vUnused >> mapValue >> mapNoteData >> vOrderForm >> fTimeReceivedIsTxTime >> nTimeReceived >> fFromMe >> fSpent;
 
         strFromAccount = std::move(mapValue["fromaccount"]);
         ReadOrderPos(nOrderPos, mapValue);
@@ -455,6 +458,9 @@ public:
         pwallet = pwalletIn;
         MarkDirty();
     }
+
+    // Z
+    void SetNoteData(mapNoteData_t &noteData);
 
     //! filter decides which addresses will count towards the debit
     CAmount GetDebit(const isminefilter& filter) const;
@@ -699,7 +705,12 @@ private:
      */
     typedef std::multimap<COutPoint, uint256> TxSpends;
     TxSpends mapTxSpends;
+    // Z
+    typedef std::multimap<uint256, uint256> TxNullifiers;
+    TxNullifiers mapTxNullifiers;
+
     void AddToSpends(const COutPoint& outpoint, const uint256& wtxid);
+    void AddToSpends(const uint256& nullifier, const uint256& wtxid);
     void AddToSpends(const uint256& wtxid);
 
     /* Mark a transaction (and its in-wallet descendants) as conflicting with a particular block. */
@@ -790,6 +801,8 @@ public:
 
     // Map from Key ID to key metadata.
     std::map<CKeyID, CKeyMetadata> mapKeyMetadata;
+    // Z
+    std::map<libzcash::PaymentAddress, CKeyMetadata> mapZKeyMetadata;
 
     // Map from Script ID to key metadata (for watch-only keys).
     std::map<CScriptID, CKeyMetadata> m_script_metadata;
@@ -809,7 +822,8 @@ public:
         encrypted_batch = nullptr;
     }
 
-    /** mapNullifiersToNotes - Discussion from Zcash:
+    /** Z - mapNullifiersToNotes
+     * Discussion from Zcash:
      * The reverse mapping of nullifiers to notes.
      *
      * The mapping cannot be updated while an encrypted wallet is locked,
@@ -873,8 +887,7 @@ public:
     std::map<CTxDestination, CAddressBookData> mapAddressBook;
 
     std::set<COutPoint> setLockedCoins;
-    std::set<JSOutPoint> setLockedNotes;
-
+    //std::set<JSOutPoint> setLockedNotes; // Z - TODO (from Zcash codebase)
 
     const CWalletTx* GetWalletTx(const uint256& hash) const;
 
@@ -912,12 +925,6 @@ public:
     void UnlockCoin(const COutPoint& output) EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
     void UnlockAllCoins() EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
     void ListLockedCoins(std::vector<COutPoint>& vOutpts) const EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
-
-    bool IsLockedNote(const JSOutPoint& outpt) const EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
-    void LockNote(const JSOutPoint& output) EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
-    void UnlockNote(const JSOutPoint& output) EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
-    void UnlockAllNotes() EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
-    std::vector<JSOutPoint> ListLockedNotes() const EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
 
     /*
      * Rescan abort properties
@@ -978,28 +985,6 @@ public:
     unsigned int ComputeTimeSmart(const CWalletTx& wtx) const;
 
     /**
-      * keystore ZKeys
-      */
-    //! Generates a new zaddr
-    libzcash::PaymentAddress GenerateNewZKey();
-    //! Adds spending key to the store, and saves it to disk
-    bool AddZKey(const libzcash::SpendingKey &key);
-    //! Adds spending key to the store, without saving it to disk (used by LoadWallet)
-    bool LoadZKey(const libzcash::SpendingKey &key);
-    //! Load spending key metadata (used by LoadWallet)
-    bool LoadZKeyMetadata(const libzcash::PaymentAddress &addr, const CKeyMetadata &meta);
-    //! Adds an encrypted spending key to the store, without saving it to disk (used by LoadWallet)
-    bool LoadCryptedZKey(const libzcash::PaymentAddress &addr, const libzcash::ReceivingKey &rk, const std::vector<unsigned char> &vchCryptedSecret);
-    //! Adds an encrypted spending key to the store, and saves it to disk (virtual method, declared in crypter.h)
-    bool AddCryptedSpendingKey(const libzcash::PaymentAddress &address, const libzcash::ReceivingKey &rk, const std::vector<unsigned char> &vchCryptedSecret);
-
-    //! Adds a viewing key to the store, and saves it to disk.
-    bool AddViewingKey(const libzcash::ViewingKey &vk);
-    bool RemoveViewingKey(const libzcash::ViewingKey &vk);
-    //! Adds a viewing key to the store, without saving it to disk (used by LoadWallet)
-    bool LoadViewingKey(const libzcash::ViewingKey &dest);
-
-    /**
      * Increment the next transaction order id
      * @return next transaction order id
      */
@@ -1009,22 +994,21 @@ public:
     bool GetLabelDestination(CTxDestination &dest, const std::string& label, bool bForceNew = false);
 
     void MarkDirty();
+
+    // Z
     bool UpdateNullifierNoteMap();
     void UpdateNullifierNoteMapWithTx(const CWalletTx& wtx);
+    void WitnessNoteCommitment(
+        std::vector<uint256> commitments,
+        std::vector<boost::optional<ZCIncrementalWitness>>& witnesses,
+        uint256 &final_anchor);
+
     bool AddToWallet(const CWalletTx& wtxIn, bool fFlushOnClose=true);
     bool LoadToWallet(const CWalletTx& wtxIn);
     void TransactionAddedToMempool(const CTransactionRef& tx) override;
     void BlockConnected(const std::shared_ptr<const CBlock>& pblock, const CBlockIndex *pindex, const std::vector<CTransactionRef>& vtxConflicted) override;
     void BlockDisconnected(const std::shared_ptr<const CBlock>& pblock) override;
     bool AddToWalletIfInvolvingMe(const CTransactionRef& tx, const CBlockIndex* pIndex, int posInBlock, bool fUpdate) EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
-
-    /**
-     * Z
-     */
-    void WitnessNoteCommitment(
-         std::vector<uint256> commitments,
-         std::vector<boost::optional<ZCIncrementalWitness>>& witnesses,
-         uint256 &final_anchor);
 
     int64_t RescanFromTime(int64_t startTime, const WalletRescanReserver& reserver, bool update);
     CBlockIndex* ScanForWalletTransactions(CBlockIndex* pindexStart, CBlockIndex* pindexStop, const WalletRescanReserver& reserver, bool fUpdate = false);
@@ -1123,9 +1107,7 @@ public:
     std::set<CTxDestination> GetLabelAddresses(const std::string& label) const;
     void DeleteLabel(const std::string& label);
 
-    /**
-     * Z
-     */
+    // Z
     boost::optional<uint256> GetNoteNullifier(
         const JSDescription& jsdesc,
         const libzcash::PaymentAddress& address,
@@ -1135,9 +1117,18 @@ public:
     mapNoteData_t FindMyNotes(const CTransaction& tx) const;
     bool IsFromMe(const uint256& nullifier) const;
     void GetNoteWitnesses(
-         std::vector<JSOutPoint> notes,
-         std::vector<boost::optional<ZCIncrementalWitness>>& witnesses,
-         uint256 &final_anchor);
+        std::vector<JSOutPoint> notes,
+        std::vector<boost::optional<ZCIncrementalWitness>>& witnesses,
+        uint256 &final_anchor);
+
+    /*
+     * Size of the incremental witness cache for the notes in our wallet.
+     * This will always be greater than or equal to the size of the largest
+     * incremental witness cache in any transaction in mapWallet.
+     */
+    int64_t nWitnessCacheSize;
+    void ClearNoteWitnessCache();
+
 
     isminetype IsMine(const CTxIn& txin) const;
     /**
@@ -1210,16 +1201,16 @@ public:
      * @note called with lock cs_wallet held.
      */
     boost::signals2::signal<void (CWallet *wallet, const CTxDestination
-            &address, const std::string &label, bool isMine,
-            const std::string &purpose,
-            ChangeType status)> NotifyAddressBookChanged;
+        &address, const std::string &label, bool isMine,
+        const std::string &purpose,
+        ChangeType status)> NotifyAddressBookChanged;
 
     /**
      * Wallet transaction added, removed or updated.
      * @note called with lock cs_wallet held.
      */
     boost::signals2::signal<void (CWallet *wallet, const uint256 &hashTx,
-            ChangeType status)> NotifyTransactionChanged;
+        ChangeType status)> NotifyTransactionChanged;
 
     /** Show progress e.g. for rescan */
     boost::signals2::signal<void (const std::string &title, int nProgress)> ShowProgress;
@@ -1231,20 +1222,6 @@ public:
     bool GetBroadcastTransactions() const { return fBroadcastTransactions; }
     /** Set whether this wallet broadcasts transactions. */
     void SetBroadcastTransactions(bool broadcast) { fBroadcastTransactions = broadcast; }
-
-    /* Find notes filtered by payment address, min depth, ability to spend */
-    void GetFilteredNotes(std::vector<CNotePlaintextEntry> & outEntries,
-                          std::string address,
-                          int minDepth=1,
-                          bool ignoreSpent=true,
-                          bool ignoreUnspendable=true);
-
-    /* Find notes filtered by payment addresses, min depth, ability to spend */
-    void GetFilteredNotes(std::vector<CNotePlaintextEntry>& outEntries,
-                          std::set<libzcash::PaymentAddress>& filterAddresses,
-                          int minDepth=1,
-                          bool ignoreSpent=true,
-                          bool ignoreUnspendable=true);
 
     /** Return whether transaction can be abandoned */
     bool TransactionCanBeAbandoned(const uint256& hashTx) const;
@@ -1318,6 +1295,26 @@ public:
 
     /** Whether a given output is spendable by this wallet */
     bool OutputEligibleForSpending(const COutput& output, const CoinEligibilityFilter& eligibility_filter) const;
+
+    /**
+     * Z
+     * Find notes filtered by payment address, min depth, ability to spend
+     */
+    void GetFilteredNotes(std::vector<CNotePlaintextEntry> & outEntries, std::string address, int minDepth=1, bool ignoreSpent=true);
+
+protected:
+    /**
+    * pindex is the new tip being connected.
+    */
+    void IncrementNoteWitnesses(const CBlockIndex* pindex,
+                                const CBlock* pblock,
+                                ZCIncrementalMerkleTree& tree);
+    /**
+    * pindex is the old tip being disconnected.
+    */
+    void DecrementNoteWitnesses(const CBlockIndex* pindex);
+
+
 };
 
 /** A key allocated from the key pool. */

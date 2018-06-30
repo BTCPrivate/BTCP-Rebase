@@ -21,7 +21,7 @@ public:
     uint8_t n;
 
     JSOutPoint() { SetNull(); }
-JSOutPoint(uint256 h, size_t js, uint8_t n) : hash {h}, js {js}, n {n} { }
+    JSOutPoint(uint256 h, size_t js, uint8_t n) : hash {h}, js {js}, n {n} { }
 
     ADD_SERIALIZE_METHODS;
 
@@ -88,11 +88,11 @@ public:
      */
     int witnessHeight;
 
-CNoteData() : address(), nullifier(), witnessHeight {-1} { }
-CNoteData(libzcash::PaymentAddress a) :
-    address {a}, nullifier(), witnessHeight {-1} { }
-CNoteData(libzcash::PaymentAddress a, uint256 n) :
-    address {a}, nullifier {n}, witnessHeight {-1} { }
+    CNoteData() : address(), nullifier(), witnessHeight {-1} { }
+    CNoteData(libzcash::PaymentAddress a) :
+        address {a}, nullifier(), witnessHeight {-1} { }
+    CNoteData(libzcash::PaymentAddress a, uint256 n) :
+        address {a}, nullifier {n}, witnessHeight {-1} { }
 
     ADD_SERIALIZE_METHODS;
 
@@ -106,7 +106,7 @@ CNoteData(libzcash::PaymentAddress a, uint256 n) :
 
     friend bool operator<(const CNoteData& a, const CNoteData& b) {
         return (a.address < b.address ||
-                (a.address == b.address && a.nullifier < b.nullifier));
+            (a.address == b.address && a.nullifier < b.nullifier));
     }
 
     friend bool operator==(const CNoteData& a, const CNoteData& b) {

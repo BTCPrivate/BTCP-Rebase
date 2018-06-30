@@ -454,11 +454,16 @@ bool CWallet::ChangeWalletPassphrase(const SecureString& strOldWalletPassphrase,
     return false;
 }
 
+// (Originally named SetBestChain)
 void CWallet::ChainStateFlushed(const CBlockLocator& loc)
 {
     WalletBatch batch(*database);
     batch.WriteBestBlock(loc);
+
+    // TODO Port from SetBestChainINTERAL in BTCPrivate/BitcoinPrivate
 }
+
+
 
 bool CWallet::SetMinVersion(enum WalletFeature nVersion, WalletBatch* batch_in, bool fExplicit)
 {
@@ -3800,41 +3805,6 @@ void CWallet::ListLockedCoins(std::vector<COutPoint>& vOutpts) const
         vOutpts.push_back(outpt);
     }
 }
-
-// Note Locking Operations
-
-void CWallet::LockNote(const JSOutPoint& output)
-{
-    AssertLockHeld(cs_wallet); // setLockedNotes
-    setLockedNotes.insert(output);
-}
-
-void CWallet::UnlockNote(const JSOutPoint& output)
-{
-    AssertLockHeld(cs_wallet); // setLockedNotes
-    setLockedNotes.erase(output);
-}
-
-void CWallet::UnlockAllNotes()
-{
-    AssertLockHeld(cs_wallet); // setLockedNotes
-    setLockedNotes.clear();
-}
-
-bool CWallet::IsLockedNote(const JSOutPoint& outpt) const
-{
-    AssertLockHeld(cs_wallet); // setLockedNotes
-
-    return (setLockedNotes.count(outpt) > 0);
-}
-
-std::vector<JSOutPoint> CWallet::ListLockedNotes() const
-{
-    AssertLockHeld(cs_wallet); // setLockedNotes
-    std::vector<JSOutPoint> vOutpts(setLockedNotes.begin(), setLockedNotes.end());
-    return vOutpts;
-}
-
 
 /** @} */ // end of Actions
 
