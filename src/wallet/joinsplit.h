@@ -26,7 +26,7 @@ public:
     ADD_SERIALIZE_METHODS;
 
     template <typename Stream, typename Operation>
-        inline void SerializationOp(Stream& s, Operation ser_action, int nType, int nVersion) {
+        inline void SerializationOp(Stream& s, Operation ser_action) {
         READWRITE(hash);
         READWRITE(js);
         READWRITE(n);
@@ -88,16 +88,16 @@ public:
      */
     int witnessHeight;
 
-    CNoteData() : address(), nullifier(), witnessHeight {-1} { }
+    CNoteData() : address(), nullifier(), witnesses {}, witnessHeight {-1} { }
     CNoteData(libzcash::PaymentAddress a) :
-        address {a}, nullifier(), witnessHeight {-1} { }
+        address {a}, nullifier(), witnesses {}, witnessHeight {-1} { }
     CNoteData(libzcash::PaymentAddress a, uint256 n) :
-        address {a}, nullifier {n}, witnessHeight {-1} { }
+        address {a}, nullifier {n}, witnesses {}, witnessHeight {-1} { }
 
     ADD_SERIALIZE_METHODS;
 
     template <typename Stream, typename Operation>
-        inline void SerializationOp(Stream& s, Operation ser_action, int nType, int nVersion) {
+        inline void SerializationOp(Stream& s, Operation ser_action) {
         READWRITE(address);
         READWRITE(nullifier);
         READWRITE(witnesses);

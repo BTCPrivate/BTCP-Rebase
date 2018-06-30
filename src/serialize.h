@@ -20,6 +20,7 @@
 #include <string.h>
 #include <utility>
 #include <vector>
+#include <list>
 
 #include <prevector.h>
 #include <span.h>
@@ -556,6 +557,12 @@ template<typename Stream, typename T, std::size_t N> void Serialize(Stream& os, 
 template<typename Stream, typename T, std::size_t N> void Unserialize(Stream& is, std::array<T, N>& item);
 
 /**
+ * list
+ */
+template<typename Stream, typename T> void Serialize(Stream& os, const std::list<T>& item);
+template<typename Stream, typename T> void Unserialize(Stream& is, std::list<T>& item);
+
+/**
  * pair
  */
 template<typename Stream, typename K, typename T> void Serialize(Stream& os, const std::pair<K, T>& item);
@@ -784,6 +791,25 @@ template<typename Stream, typename T, std::size_t N>
 {
     for (size_t i = 0; i < N; i++) {
         Unserialize(is, item[i]);
+    }
+}
+
+/**
+ * list
+ */
+template<typename Stream, typename T>
+    void Serialize(Stream& os, const std::list<T>& item)
+{
+    for (auto& i : item) {
+        Serialize(os, i);
+    }
+}
+
+template<typename Stream, typename T>
+    void Unserialize(Stream& is, std::list<T>& item)
+{
+    for (auto& i : item) {
+        Unserialize(is, i);
     }
 }
 
