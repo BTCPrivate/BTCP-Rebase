@@ -47,7 +47,7 @@ if ENABLE_WALLET
 LIBBITCOIN_WALLET=libbitcoin_wallet.a
 endif
 
-LIBBITCOIN_CRYPTO= $(LIBBITCOIN_CRYPTO_BASE)
+LIBBITCOIN_CRYPTO=$(LIBBITCOIN_CRYPTO_BASE)
 if ENABLE_SSE41
 LIBBITCOIN_CRYPTO_SSE41 = crypto/libbitcoin_crypto_sse41.a
 LIBBITCOIN_CRYPTO += $(LIBBITCOIN_CRYPTO_SSE41)
@@ -367,14 +367,14 @@ crypto_libbitcoin_crypto_avx2_a_SOURCES = crypto/sha256_avx2.cpp
 
 if ENABLE_MINING
 EQUIHASH_TROMP_SOURCES = \
-pow/tromp/equi_miner.h \
-pow/tromp/equi.h \
-pow/tromp/osx_barrier.h
+  pow/tromp/equi_miner.h \
+  pow/tromp/equi.h \
+  pow/tromp/osx_barrier.h
 
-crypto_libbitcoin_crypto_a_CPPFLAGS += \
--DEQUIHASH_TROMP_ATOMIC
-crypto_libbitcoin_crypto_a_SOURCES += \
-${EQUIHASH_TROMP_SOURCES}
+crypto_libbitcoin_crypto_base_a_CPPFLAGS += \
+  -DEQUIHASH_TROMP_ATOMIC
+crypto_libbitcoin_crypto_base_a_SOURCES += \
+  ${EQUIHASH_TROMP_SOURCES}
 endif
 
 # consensus: shared between all executables that validate any consensus rules.
@@ -579,7 +579,7 @@ libzcash_a_CPPFLAGS = -DMULTICORE -fopenmp -fPIC -DBINARY_OUTPUT -DCURVE_ALT_BN1
 
 libzcash_a_CXXFLAGS = $(SAN_CXXFLAGS) $(HARDENED_CXXFLAGS) -fwrapv -fno-strict-aliasing
 
-libzcash_a_LDFLAGS = $(SAN_LDFLAGS) $(HARDENED_LDFLAGS)
+#libzcash_a_LDFLAGS = $(SAN_LDFLAGS) $(HARDENED_LDFLAGS)
 
 libzcash_a_CPPFLAGS += -DMONTGOMERY_OUTPUT
 
