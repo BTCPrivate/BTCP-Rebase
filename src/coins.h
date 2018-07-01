@@ -143,7 +143,7 @@ struct CAnchorsCacheEntry
         DIRTY = (1 << 0), // This cache entry is potentially different from the version in the parent view.
     };
 
-    CAnchorsCacheEntry() : entered(false), flags(0) {}
+CAnchorsCacheEntry() : entered(false), flags(0) {}
 };
 
 struct CNullifiersCacheEntry
@@ -155,7 +155,7 @@ struct CNullifiersCacheEntry
         DIRTY = (1 << 0), // This cache entry is potentially different from the version in the parent view.
     };
 
-    CNullifiersCacheEntry() : entered(false), flags(0) {}
+CNullifiersCacheEntry() : entered(false), flags(0) {}
 };
 
 typedef std::unordered_map<COutPoint, CCoinsCacheEntry, SaltedOutpointHasher> CCoinsMap;
