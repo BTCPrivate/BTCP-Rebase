@@ -7,6 +7,8 @@ This is currently in development software, not all consensus rules have been imp
 
 Development Status
 ------
+[![Build Status](https://travis-ci.com/BTCPrivate/BTCP-Rebase.svg?branch=master)](https://travis-ci.com/BTCPrivate/BTCP-Rebase)
+
 This should build on linux and sync the full BTCP mainnet chain. Wallet code and test suite is not fully working yet.
 
 Build Instructions
