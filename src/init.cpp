@@ -60,6 +60,9 @@
 #include <boost/thread.hpp>
 #include <openssl/crypto.h>
 
+#include <libsnark/common/profiling.hpp>
+#include <librustzcash.h>
+
 #if ENABLE_ZMQ
 #include <zmq/zmqnotificationinterface.h>
 #endif
@@ -71,6 +74,8 @@ static const bool DEFAULT_STOPAFTERBLOCKIMPORT = false;
 
 std::unique_ptr<CConnman> g_connman;
 std::unique_ptr<PeerLogicValidation> peerLogic;
+
+ZCJoinSplit* pzcashParams = NULL;
 
 #if !(ENABLE_WALLET)
 class DummyWalletInit : public WalletInitInterface {
@@ -289,6 +294,10 @@ void Shutdown()
     GetMainSignals().UnregisterWithMempoolSignals(mempool);
     g_wallet_init_interface.Close();
     globalVerifyHandle.reset();
+
+    delete pzcashParams;
+    pzcashParams = NULL;
+
     ECC_Stop();
     LogPrintf("%s: done\n", __func__);
 }
@@ -499,6 +508,11 @@ void SetupServerArgs()
     gArgs.AddArg("-rpcuser=<user>", "Username for JSON-RPC connections", false, OptionsCategory::RPC);
     gArgs.AddArg("-rpcworkqueue=<n>", strprintf("Set the depth of the work queue to service RPC calls (default: %d)", DEFAULT_HTTP_WORKQUEUE), true, OptionsCategory::RPC);
     gArgs.AddArg("-server", "Accept command line and JSON-RPC commands", false, OptionsCategory::RPC);
+
+    // Experimental mode features
+    gArgs.AddArg("-developerencryptwallet", "Enable filesystem wallet encryption", false, OptionsCategory::OPTIONS);
+    gArgs.AddArg("-paymentdisclosure", "Enable RPC method z_getpaymentdisclosure and z_validatepaymentdisclosure, which create payment proofs (ZIP 303)", false, OptionsCategory::RPC);
+    gArgs.AddArg("-z_mergetoaddress", "Enable RPC method z_mergetoaddress, which combines many small UTXOs and notes into a few larger ones.", false, OptionsCategory::RPC);
 
     // Hidden options
     gArgs.AddArg("-rpcssl", "", false, OptionsCategory::HIDDEN);
@@ -743,6 +757,37 @@ static bool AppInitServers()
     return true;
 }
 
+/** Load Zcash ceremony params from filesystem */
+static void ZC_LoadParams()
+{
+    struct timeval tv_start, tv_end;
+    float elapsed;
+
+    boost::filesystem::path pk_path = ZC_GetParamsDir() / "sprout-proving.key";
+    boost::filesystem::path vk_path = ZC_GetParamsDir() / "sprout-verifying.key";
+
+     if (!(boost::filesystem::exists(pk_path) && boost::filesystem::exists(vk_path))) {
+        uiInterface.ThreadSafeMessageBox(strprintf(
+            _("Cannot find the Zcash network parameters in the following directory:\n"
+              "%s\n"
+              "Please run 'zcash-fetch-params' or './zcutil/fetch-params.sh' and then restart."),
+                ZC_GetParamsDir()),
+            "", CClientUIInterface::MSG_ERROR);
+        StartShutdown();
+        return;
+    }
+
+    LogPrintf("Loading verifying key from %s\n", vk_path.string().c_str());
+    gettimeofday(&tv_start, 0);
+
+    pzcashParams = ZCJoinSplit::Prepared(vk_path.string(), pk_path.string());
+
+    gettimeofday(&tv_end, 0);
+    elapsed = float(tv_end.tv_sec-tv_start.tv_sec) + (tv_end.tv_usec-tv_start.tv_usec)/float(1000000);
+    LogPrintf("Loaded verifying key in %fs seconds.\n", elapsed);
+}
+
+
 // Parameter interaction based on rules
 void InitParameterInteraction()
 {
@@ -926,6 +971,22 @@ bool AppInitParameterInteraction()
     // ********************************************************* Step 2: parameter interactions
 
     // also see: InitParameterInteraction()
+
+    // Experimental Features Mode
+    // Set this early so that experimental features are correctly enabled/disabled
+    fExperimentalMode = gArgs.GetBoolArg("-experimentalfeatures", false);
+
+    // Fail early if user has set experimental options without the global flag
+    if (!fExperimentalMode) {
+        if (gArgs.GetBoolArg("-developerencryptwallet", false)) {
+            return InitError("-developerencryptwallet requires -experimentalfeatures.");
+        }
+        else if (gArgs.GetBoolArg("-paymentdisclosure", false)) {
+            return InitError("-paymentdisclosure requires -experimentalfeatures.");
+        } else if (gArgs.GetBoolArg("-zmergetoaddress", false)) {
+            return InitError("-zmergetoaddress requires -experimentalfeatures.");
+        }
+    }
 
     if (!fs::is_directory(GetBlocksDir(false))) {
         return InitError(strprintf(_("Specified blocks directory \"%s\" does not exist.\n"), gArgs.GetArg("-blocksdir", "").c_str()));
@@ -1273,6 +1334,15 @@ bool AppInitMain()
 
     GetMainSignals().RegisterBackgroundSignalScheduler(scheduler);
     GetMainSignals().RegisterWithMempoolSignals(mempool);
+
+    // Discussion from Zcash:
+    // These must be disabled for now, they are buggy and we probably don't
+    // want any of libsnark's profiling in production anyway.
+    libsnark::inhibit_profiling_info = true;
+    libsnark::inhibit_profiling_counters = true;
+
+    // Initialize Zcash circuit parameters
+    ZC_LoadParams();
 
     /* Register RPC commands regardless of -server setting so they will be
      * available in the GUI RPC console even if external calls are disabled.

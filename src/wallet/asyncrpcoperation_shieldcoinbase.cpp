@@ -4,21 +4,20 @@
 
 #include <asyncrpcqueue.h>
 #include <amount.h>
-#include <consensus/upgrades.h>
 #include <core_io.h>
 #include <init.h>
-#include <main.h>
 #include <net.h>
 #include <netbase.h>
-#include <rpcserver.h>
+#include <paymentdisclosure.h>
+#include <paymentdisclosuredb.h>
 #include <timedata.h>
 #include <util.h>
 #include <utilmoneystr.h>
-#include <wallet.h>
-#include <walletdb.h>
+#include <wallet/wallet.h>
+#include <wallet/walletdb.h>
 #include <script/interpreter.h>
 #include <utiltime.h>
-#include <rpcprotocol.h>
+#include <rpc/protocol.h>
 #include <zcash/IncrementalMerkleTree.hpp>
 #include <sodium.h>
 #include <miner.h>
@@ -30,9 +29,7 @@
 
 #include <wallet/asyncrpcoperation_shieldcoinbase.h>
 
-#include <wallet/paymentdisclosure.h>
-#include <wallet/paymentdisclosuredb.h>
-
+#if 0
 using namespace libzcash;
 
 static int find_output(UniValue obj, int n) {
@@ -79,17 +76,17 @@ AsyncRPCOperation_shieldcoinbase::AsyncRPCOperation_shieldcoinbase(
     }
 
     // Log the context info
-    if (LogAcceptCategory("zrpcunsafe")) {
-        LogPrint("zrpcunsafe", "%s: z_shieldcoinbase initialized (context=%s)\n", getId(), contextInfo.write());
+    if (LogAcceptCategory(BCLog::ZRPCUNSAFE)) {
+        LogPrint(BCLog::ZRPCUNSAFE, "%s: z_shieldcoinbase initialized (context=%s)\n", getId(), contextInfo.write());
     } else {
-        LogPrint("zrpc", "%s: z_shieldcoinbase initialized\n", getId());
+        LogPrint(BCLog::ZRPC, "%s: z_shieldcoinbase initialized\n", getId());
     }
 
     // Lock UTXOs
     lock_utxos();
 
     // Enable payment disclosure if requested
-    paymentDisclosureMode = fExperimentalMode && GetBoolArg("-paymentdisclosure", false);
+    paymentDisclosureMode = fExperimentalMode && gArgs.GetBoolArg("-paymentdisclosure", false);
 }
 
 AsyncRPCOperation_shieldcoinbase::~AsyncRPCOperation_shieldcoinbase() {
@@ -108,9 +105,9 @@ void AsyncRPCOperation_shieldcoinbase::main() {
 
 #ifdef ENABLE_MINING
   #ifdef ENABLE_WALLET
-    GenerateBitcoins(false, NULL, 0);
+    //GenerateBitcoins(false, NULL, 0);
   #else
-    GenerateBitcoins(false, 0);
+    //GenerateBitcoins(false, 0);
   #endif
 #endif
 
@@ -137,9 +134,9 @@ void AsyncRPCOperation_shieldcoinbase::main() {
 
 #ifdef ENABLE_MINING
   #ifdef ENABLE_WALLET
-    GenerateBitcoins(GetBoolArg("-gen",false), pwalletMain, GetArg("-genproclimit", 1));
+    //GenerateBitcoins(gArgs.GetBoolArg("-gen",false), pwallet_, gArgs.GetArg("-genproclimit", 1));
   #else
-    GenerateBitcoins(GetBoolArg("-gen",false), GetArg("-genproclimit", 1));
+    //GenerateBitcoins(gArgs.GetBoolArg("-gen",false), gArgs.GetArg("-genproclimit", 1));
   #endif
 #endif
 
@@ -168,9 +165,9 @@ void AsyncRPCOperation_shieldcoinbase::main() {
         for (PaymentDisclosureKeyInfo p : paymentDisclosureData_) {
             p.first.hash = txidhash;
             if (!db->Put(p.first, p.second)) {
-                LogPrint("paymentdisclosure", "%s: Payment Disclosure: Error writing entry to database for key %s\n", getId(), p.first.ToString());
+                LogPrint(BCLog::PAYMENTDISCLOSURE, "%s: Payment Disclosure: Error writing entry to database for key %s\n", getId(), p.first.ToString());
             } else {
-                LogPrint("paymentdisclosure", "%s: Payment Disclosure: Successfully added entry to database for key %s\n", getId(), p.first.ToString());
+                LogPrint(BCLog::PAYMENTDISCLOSURE, "%s: Payment Disclosure: Successfully added entry to database for key %s\n", getId(), p.first.ToString());
             }
         }
     }
@@ -185,12 +182,14 @@ bool AsyncRPCOperation_shieldcoinbase::main_impl() {
     size_t numInputs = inputs_.size();
 
     // Check mempooltxinputlimit to avoid creating a transaction which the local mempool rejects
-    size_t limit = (size_t)GetArg("-mempooltxinputlimit", 0);
+    size_t limit = (size_t)gArgs.GetArg("-mempooltxinputlimit", 0);
     {
         LOCK(cs_main);
+        /** TODO BTCP Upgrade Logic
         if (NetworkUpgradeActive(chainActive.Height() + 1, Params().GetConsensus(), Consensus::UPGRADE_OVERWINTER)) {
             limit = 0;
         }
+        */
     }
     if (limit>0 && numInputs > limit) {
         throw JSONRPCError(RPC_WALLET_ERROR,
@@ -210,7 +209,7 @@ bool AsyncRPCOperation_shieldcoinbase::main_impl() {
     }
 
     CAmount sendAmount = targetAmount - minersFee;
-    LogPrint("zrpc", "%s: spending %s to shield %s with fee %s\n",
+    LogPrint(BCLog::ZRPC, "%s: spending %s to shield %s with fee %s\n",
             getId(), FormatMoney(targetAmount), FormatMoney(sendAmount), FormatMoney(minersFee));
 
     // update the transaction with these inputs
@@ -309,11 +308,11 @@ void AsyncRPCOperation_shieldcoinbase::sign_send_raw_transaction(UniValue obj)
 
 
 UniValue AsyncRPCOperation_shieldcoinbase::perform_joinsplit(ShieldCoinbaseJSInfo & info) {
-    uint32_t consensusBranchId;
+    //uint32_t consensusBranchId;
     uint256 anchor;
     {
         LOCK(cs_main);
-        consensusBranchId = CurrentEpochBranchId(chainActive.Height() + 1, Params().GetConsensus());
+        //consensusBranchId = CurrentEpochBranchId(chainActive.Height() + 1, Params().GetConsensus());
         anchor = pcoinsTip->GetBestAnchor();
     }
 
@@ -337,7 +336,7 @@ UniValue AsyncRPCOperation_shieldcoinbase::perform_joinsplit(ShieldCoinbaseJSInf
 
     CMutableTransaction mtx(tx_);
 
-    LogPrint("zrpcunsafe", "%s: creating joinsplit at index %d (vpub_old=%s, vpub_new=%s, in[0]=%s, in[1]=%s, out[0]=%s, out[1]=%s)\n",
+    LogPrint(BCLog::ZRPCUNSAFE, "%s: creating joinsplit at index %d (vpub_old=%s, vpub_new=%s, in[0]=%s, in[1]=%s, out[0]=%s, out[1]=%s)\n",
             getId(),
             tx_.vjoinsplit.size(),
             FormatMoney(info.vpub_old), FormatMoney(info.vpub_new),
@@ -452,7 +451,7 @@ UniValue AsyncRPCOperation_shieldcoinbase::perform_joinsplit(ShieldCoinbaseJSInf
         paymentDisclosureData_.push_back(PaymentDisclosureKeyInfo(pdKey, pdInfo));
 
         CZCPaymentAddress address(zaddr);
-        LogPrint("paymentdisclosure", "%s: Payment Disclosure: js=%d, n=%d, zaddr=%s\n", getId(), js_index, int(mapped_index), address.ToString());
+        LogPrint(BCLog::PAYMENTDISCLOSURE, "%s: Payment Disclosure: js=%d, n=%d, zaddr=%s\n", getId(), js_index, int(mapped_index), address.ToString());
     }
     // !!! Payment disclosure END
 
@@ -484,20 +483,21 @@ UniValue AsyncRPCOperation_shieldcoinbase::getStatus() const {
  * Lock input utxos
  */
  void AsyncRPCOperation_shieldcoinbase::lock_utxos() {
-    LOCK2(cs_main, pwalletMain->cs_wallet);
-    for (auto utxo : inputs_) {
-        COutPoint outpt(utxo.txid, utxo.vout);
-        pwalletMain->LockCoin(outpt);
-    }
+     LOCK2(cs_main, pwallet_->cs_wallet);
+     for (auto utxo : inputs_) {
+         COutPoint outpt(utxo.txid, utxo.vout);
+         pwallet_->LockCoin(outpt);
+     }
 }
 
 /**
  * Unlock input utxos
  */
 void AsyncRPCOperation_shieldcoinbase::unlock_utxos() {
-    LOCK2(cs_main, pwalletMain->cs_wallet);
+    LOCK2(cs_main, pwallet_->cs_wallet);
     for (auto utxo : inputs_) {
         COutPoint outpt(utxo.txid, utxo.vout);
-        pwalletMain->UnlockCoin(outpt);
+        pwallet_->UnlockCoin(outpt);
     }
 }
+#endif

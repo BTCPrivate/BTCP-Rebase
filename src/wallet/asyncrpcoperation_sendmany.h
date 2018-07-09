@@ -11,7 +11,7 @@
 #include <primitives/transaction.h>
 #include <zcash/JoinSplit.hpp>
 #include <zcash/Address.hpp>
-#include <wallet.h>
+#include <wallet/wallet.h>
 #include <paymentdisclosure.h>
 
 #include <unordered_map>
@@ -21,7 +21,7 @@
 
 // Default transaction fee if caller does not specify one.
 #define ASYNC_RPC_OPERATION_DEFAULT_MINERS_FEE   10000
-
+#if 0
 using namespace libzcash;
 
 // A recipient is a tuple of address, amount, memo (optional if zaddr)
@@ -73,13 +73,13 @@ private:
 
     UniValue contextinfo_;     // optional data to include in return value from getStatus()
 
-    uint32_t consensusBranchId_;
+    //uint32_t consensusBranchId_;
     CAmount fee_;
     int mindepth_;
     std::string fromaddress_;
     bool isfromtaddr_;
     bool isfromzaddr_;
-    CBitcoinAddress fromtaddr_;
+    CTxDestination fromtaddr_;
     PaymentAddress frompaymentaddress_;
     SpendingKey spendingkey_;
 
@@ -190,3 +190,4 @@ public:
 
 
 #endif /* ASYNCRPCOPERATION_SENDMANY_H */
+#endif

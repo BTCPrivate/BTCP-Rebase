@@ -21,7 +21,7 @@
 
 // Default transaction fee if caller does not specify one.
 #define MERGE_TO_ADDRESS_OPERATION_DEFAULT_MINERS_FEE 10000
-
+#if 0
 using namespace libzcash;
 
 // Input UTXO is a tuple of txid, vout, amount
@@ -80,13 +80,13 @@ private:
 
     UniValue contextinfo_; // optional data to include in return value from getStatus()
 
-    uint32_t consensusBranchId_;
+    //uint32_t consensusBranchId_;
     CAmount fee_;
     int mindepth_;
     MergeToAddressRecipient recipient_;
     bool isToTaddr_;
     bool isToZaddr_;
-    CBitcoinAddress toTaddr_;
+    CTxDestination toTaddr_;
     PaymentAddress toPaymentAddress_;
 
     uint256 joinSplitPubKey_;
@@ -191,3 +191,4 @@ public:
 
 
 #endif /* ASYNCRPCOPERATION_MERGETOADDRESS_H */
+#endif

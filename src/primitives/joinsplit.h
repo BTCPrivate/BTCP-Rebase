@@ -19,7 +19,7 @@
 #include <zcash/JoinSplit.hpp>
 #include <zcash/Proof.hpp>
 
-#include <boost/array.hpp>
+#include <array>
 
 class JSDescription
 {
@@ -88,8 +88,8 @@ public:
         const uint256& rt,
         std::array<libzcash::JSInput, ZC_NUM_JS_INPUTS>& inputs,
         std::array<libzcash::JSOutput, ZC_NUM_JS_OUTPUTS>& outputs,
-        std::array<size_t, ZC_NUM_JS_INPUTS>& inputMap,
-        std::array<size_t, ZC_NUM_JS_OUTPUTS>& outputMap,
+        std::array<uint64_t, ZC_NUM_JS_INPUTS>& inputMap,
+        std::array<uint64_t, ZC_NUM_JS_OUTPUTS>& outputMap,
         CAmount vpub_old,
         CAmount vpub_new,
         bool computeProof = true, // Set to false in some tests
