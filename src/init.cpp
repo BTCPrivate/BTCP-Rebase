@@ -90,6 +90,8 @@ public:
 const WalletInitInterface& g_wallet_init_interface = DummyWalletInit();
 #endif
 
+ZCJoinSplit* pzcashParams = nullptr;
+
 #if ENABLE_ZMQ
 static CZMQNotificationInterface* pzmqNotificationInterface = nullptr;
 #endif
@@ -289,6 +291,10 @@ void Shutdown()
     GetMainSignals().UnregisterWithMempoolSignals(mempool);
     g_wallet_init_interface.Close();
     globalVerifyHandle.reset();
+
+    delete pzcashParams;
+    pzcashParams = nullptr;
+
     ECC_Stop();
     LogPrintf("%s: done\n", __func__);
 }
@@ -696,6 +702,39 @@ static void ThreadImport(std::vector<fs::path> vImportFiles)
         LoadMempool();
     }
     g_is_mempool_loaded = !fRequestShutdown;
+}
+
+static void ZC_LoadParams()
+{
+    struct timeval tv_start, tv_end;
+    float elapsed;
+
+    boost::filesystem::path pk_path = ZC_GetParamsDir() / "sprout-proving.key";
+    boost::filesystem::path vk_path = ZC_GetParamsDir() / "sprout-verifying.key";
+
+    if (!(boost::filesystem::exists(pk_path) && boost::filesystem::exists(vk_path))) {
+        uiInterface.ThreadSafeMessageBox(strprintf(
+            _("Cannot find the Bitcoin Private network parameters in the following directory:\n"
+              "%s\n"
+              "Please run 'zcash-fetch-params' or './btcputil/fetch-params.sh' and then restart."),
+                ZC_GetParamsDir()),
+            "", CClientUIInterface::MSG_ERROR);
+        StartShutdown();
+        return;
+    }
+
+    pzcashParams = ZCJoinSplit::Unopened();
+
+    LogPrintf("Loading verifying key from %s\n", vk_path.string().c_str());
+    gettimeofday(&tv_start, 0);
+
+    pzcashParams->loadVerifyingKey(vk_path.string());
+
+    gettimeofday(&tv_end, 0);
+    elapsed = float(tv_end.tv_sec-tv_start.tv_sec) + (tv_end.tv_usec-tv_start.tv_usec)/float(1000000);
+    LogPrintf("Loaded verifying key in %fs seconds.\n", elapsed);
+
+    pzcashParams->setProvingKeyPath(pk_path.string());
 }
 
 /** Sanity checks
@@ -1266,6 +1305,14 @@ bool AppInitMain()
         for (int i=0; i<nScriptCheckThreads-1; i++)
             threadGroup.create_thread(&ThreadScriptCheck);
     }
+
+    // These must be disabled for now, they are buggy and we probably don't
+    // want any of libsnark's profiling in production anyway.
+    libsnark::inhibit_profiling_info = true;
+    libsnark::inhibit_profiling_counters = true;
+
+    // Initialize Zcash circuit parameters
+    ZC_LoadParams();
 
     // Start the lightweight task scheduler thread
     CScheduler::Function serviceLoop = boost::bind(&CScheduler::serviceQueue, &scheduler);

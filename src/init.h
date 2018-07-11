@@ -10,6 +10,8 @@
 #include <string>
 #include <util.h>
 
+#include <zcash/JoinSplit.hpp>
+
 class CScheduler;
 class CWallet;
 
@@ -20,6 +22,8 @@ namespace boost
 {
 class thread_group;
 } // namespace boost
+
+extern ZCJoinSplit* pzcashParams;
 
 void StartShutdown();
 bool ShutdownRequested();
