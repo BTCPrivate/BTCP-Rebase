@@ -32,10 +32,8 @@
 #include <string>
 #include <thread>
 
-#include <wallet/paymentdisclosuredb.h>
-
 using namespace libzcash;
-
+#if 0
 int mta_find_output(UniValue obj, int n)
 {
     UniValue outputMapValue = find_value(obj, "outputmap");
@@ -958,3 +956,4 @@ void AsyncRPCOperation_mergetoaddress::unlock_notes() {
         pwalletMain->UnlockNote(std::get<0>(note));
     }
 }
+#endif

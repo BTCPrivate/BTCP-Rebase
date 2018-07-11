@@ -2,26 +2,25 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include <asyncrpcoperation_sendmany.h>
+#include <wallet/asyncrpcoperation_sendmany.h>
 #include <asyncrpcqueue.h>
 #include <amount.h>
-#include <consensus/upgrades.h>
 #include <core_io.h>
 #include <init.h>
 #include <net.h>
 #include <netbase.h>
 #include <paymentdisclosure.h>
 #include <paymentdisclosuredb.h>
+#include <rpc/protocol.h>
 #include <rpc/server.h>
 #include <timedata.h>
 #include <util.h>
 #include <utilmoneystr.h>
-#include <wallet.h>
-#include <walletdb.h>
+#include <wallet/wallet.h>
+#include <wallet/walletdb.h>
 #include <script/interpreter.h>
 #include <utiltime.h>
 #include <validation.h>
-#include <rpc/protocol.h>
 #include <zcash/IncrementalMerkleTree.hpp>
 #include <sodium.h>
 #include <miner.h>
@@ -32,7 +31,7 @@
 #include <string>
 
 using namespace libzcash;
-
+#if 0
 int find_output(UniValue obj, int n) {
     UniValue outputMapValue = find_value(obj, "outputmap");
     if (!outputMapValue.isArray()) {
@@ -1171,3 +1170,4 @@ UniValue AsyncRPCOperation_sendmany::getStatus() const {
     obj.push_back(Pair("params", contextinfo_ ));
     return obj;
 }
+#endif

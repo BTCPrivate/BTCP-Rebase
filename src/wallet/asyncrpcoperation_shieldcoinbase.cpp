@@ -4,23 +4,21 @@
 
 #include <asyncrpcqueue.h>
 #include <amount.h>
-#include <consensus/upgrades.h>
 #include <core_io.h>
 #include <init.h>
-#include <main.h>
 #include <net.h>
 #include <netbase.h>
 #include <paymentdisclosure.h>
 #include <paymentdisclosuredb.h>
-#include <rpcserver.h>
+#include <rpc/protocol.h>
+#include <rpc/server.h>
 #include <timedata.h>
 #include <util.h>
 #include <utilmoneystr.h>
-#include <wallet.h>
-#include <walletdb.h>
+#include <wallet/wallet.h>
+#include <wallet/walletdb.h>
 #include <script/interpreter.h>
 #include <utiltime.h>
-#include <rpc/protocol.h>
 #include <zcash/IncrementalMerkleTree.hpp>
 #include <sodium.h>
 #include <miner.h>
@@ -34,7 +32,7 @@
 
 
 using namespace libzcash;
-
+#if 0
 static int find_output(UniValue obj, int n) {
     UniValue outputMapValue = find_value(obj, "outputmap");
     if (!outputMapValue.isArray()) {
@@ -501,3 +499,4 @@ void AsyncRPCOperation_shieldcoinbase::unlock_utxos() {
         pwalletMain->UnlockCoin(outpt);
     }
 }
+#endif
