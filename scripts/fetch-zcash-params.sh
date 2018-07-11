@@ -85,7 +85,7 @@ EOF
 function fetch_failure {
     cat >&2 <<EOF
 
-Failed to fetch the Zcash zkSNARK parameters!
+Failed to fetch the Zcash/BTCP zkSNARK parameters!
 Try installing one of the following programs and make sure you're online:
 
  * ipfs
@@ -146,20 +146,23 @@ function lock() {
 }
 
 function exit_locked_error {
-    echo "Only one instance of fetch-params.sh can be run at a time." >&2
+    echo "Only one instance of fetch-zcash-params.sh can be run at a time." >&2
     exit 1
 }
 
 function main() {
 
-    lock fetch-params.sh \
+    lock fetch-zcash-params.sh \
     || exit_locked_error
 
     cat <<EOF
-Zcash - fetch-params.sh
+Bitcoin Private - fetch-zcash-params.sh
+Copyright (c) 2016-2018 The Zcash developers
 
-This script will fetch the Zcash zkSNARK parameters and verify their
-integrity with sha256sum.
+This script will fetch the zkSNARK parameters from the Zcash ceremony
+and verify their integrity with sha256sum. Bitcoin Private uses these
+parameters the same way as in Zcash: to enable Zero-Knowledge proofs
+that allow for shielded transactions to be constructed.
 
 NOTE: If you're using testnet or regtest, you will need to invoke this
 script with --testnet in order to download additional parameters. This
@@ -174,7 +177,7 @@ EOF
         mkdir -p "$PARAMS_DIR"
         README_PATH="$PARAMS_DIR/README"
         cat >> "$README_PATH" <<EOF
-This directory stores common Zcash zkSNARK parameters. Note that it is
+This directory stores Zcash/BTCP zkSNARK parameters. Note that it is
 distinct from the daemon's -datadir argument because the parameters are
 large and may be shared across multiple distinct -datadir's such as when
 setting up test networks.

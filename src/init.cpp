@@ -60,6 +60,8 @@
 #include <boost/thread.hpp>
 #include <openssl/crypto.h>
 
+#include <libsnark/common/profiling.hpp>
+
 #if ENABLE_ZMQ
 #include <zmq/zmqnotificationinterface.h>
 #endif
@@ -714,27 +716,23 @@ static void ZC_LoadParams()
 
     if (!(boost::filesystem::exists(pk_path) && boost::filesystem::exists(vk_path))) {
         uiInterface.ThreadSafeMessageBox(strprintf(
-            _("Cannot find the Bitcoin Private network parameters in the following directory:\n"
+            _("Cannot find the Zcash ceremony parameters for BTCP in the following directory:\n"
               "%s\n"
-              "Please run 'zcash-fetch-params' or './btcputil/fetch-params.sh' and then restart."),
+              "Please run 'scripts/fetch-zcash-params.sh' and then restart."),
                 ZC_GetParamsDir()),
             "", CClientUIInterface::MSG_ERROR);
         StartShutdown();
         return;
     }
 
-    pzcashParams = ZCJoinSplit::Unopened();
-
     LogPrintf("Loading verifying key from %s\n", vk_path.string().c_str());
     gettimeofday(&tv_start, 0);
 
-    pzcashParams->loadVerifyingKey(vk_path.string());
+    pzcashParams = ZCJoinSplit::Prepared(vk_path.string(), pk_path.string());
 
     gettimeofday(&tv_end, 0);
     elapsed = float(tv_end.tv_sec-tv_start.tv_sec) + (tv_end.tv_usec-tv_start.tv_usec)/float(1000000);
     LogPrintf("Loaded verifying key in %fs seconds.\n", elapsed);
-
-    pzcashParams->setProvingKeyPath(pk_path.string());
 }
 
 /** Sanity checks

@@ -242,7 +242,7 @@ cov: test_bitcoin.coverage/.dirstamp cov-zcash total.coverage/.dirstamp
 
 endif
 
-dist_bin_SCRIPTS = #zcutil/fetch-params.sh
+dist_bin_SCRIPTS = scripts/fetch-zcash-params.sh
 dist_noinst_SCRIPTS = autogen.sh
 
 EXTRA_DIST = $(DIST_SHARE) test/functional/test_runner.py test/functional test/zcash $(DIST_CONTRIB) $(DIST_DOCS) $(WINDOWS_PACKAGING) $(OSX_PACKAGING) $(BIN_CHECKS)
@@ -302,8 +302,6 @@ EXTRA_DIST += \
     test/util/rpcauth-test.py
 
 CLEANFILES = $(OSX_DMG) $(BITCOIN_WIN_INSTALLER)
-install-exec-hook:
-	mv $(DESTDIR)$(bindir)/fetch-params.sh $(DESTDIR)$(bindir)/zcash-fetch-params
 
 .INTERMEDIATE: $(COVERAGE_INFO)
 
