@@ -23,7 +23,7 @@ namespace boost
 class thread_group;
 } // namespace boost
 
-extern ZCJoinSplit* pzcashParams;
+extern std::unique_ptr<ZCJoinSplit> pzcashParams;
 
 void StartShutdown();
 bool ShutdownRequested();

@@ -74,6 +74,8 @@ static const bool DEFAULT_STOPAFTERBLOCKIMPORT = false;
 std::unique_ptr<CConnman> g_connman;
 std::unique_ptr<PeerLogicValidation> peerLogic;
 
+std::unique_ptr<ZCJoinSplit> pzcashParams;
+
 #if !(ENABLE_WALLET)
 class DummyWalletInit : public WalletInitInterface {
 public:
@@ -91,8 +93,6 @@ public:
 
 const WalletInitInterface& g_wallet_init_interface = DummyWalletInit();
 #endif
-
-ZCJoinSplit* pzcashParams = nullptr;
 
 #if ENABLE_ZMQ
 static CZMQNotificationInterface* pzmqNotificationInterface = nullptr;
@@ -293,9 +293,6 @@ void Shutdown()
     GetMainSignals().UnregisterWithMempoolSignals(mempool);
     g_wallet_init_interface.Close();
     globalVerifyHandle.reset();
-
-    delete pzcashParams;
-    pzcashParams = nullptr;
 
     ECC_Stop();
     LogPrintf("%s: done\n", __func__);
@@ -728,7 +725,7 @@ static void ZC_LoadParams()
     LogPrintf("Loading verifying key from %s\n", vk_path.string().c_str());
     gettimeofday(&tv_start, 0);
 
-    pzcashParams = ZCJoinSplit::Prepared(vk_path.string(), pk_path.string());
+    pzcashParams = std::unique_ptr<ZCJoinSplit>(ZCJoinSplit::Prepared(vk_path.string(), pk_path.string()));
 
     gettimeofday(&tv_end, 0);
     elapsed = float(tv_end.tv_sec-tv_start.tv_sec) + (tv_end.tv_usec-tv_start.tv_usec)/float(1000000);
