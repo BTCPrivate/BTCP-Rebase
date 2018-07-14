@@ -119,7 +119,7 @@ protected:
     std::chrono::time_point<std::chrono::system_clock> start_time_, end_time_;
 
     // Wallet of interest for this operation
-    std::shared_ptr<CWallet> pwallet_;
+    std::shared_ptr<CWallet> m_pwallet;
 
     void start_execution_clock();
     void stop_execution_clock();

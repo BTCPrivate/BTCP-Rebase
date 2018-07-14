@@ -28,7 +28,7 @@ std::map<OperationStatus, std::string> OperationStatusMap = {
  * Every operation instance should have a globally unique id
  */
 AsyncRPCOperation::AsyncRPCOperation(std::shared_ptr<CWallet> const wallet) :
-        pwallet_(wallet), error_code_(0), error_message_()
+        m_pwallet(wallet), error_code_(0), error_message_()
 {
     // Set a unique reference for each operation
     boost::uuids::uuid uuid = uuidgen();
@@ -39,7 +39,7 @@ AsyncRPCOperation::AsyncRPCOperation(std::shared_ptr<CWallet> const wallet) :
 }
 
 AsyncRPCOperation::AsyncRPCOperation(const AsyncRPCOperation& o) :
-        pwallet_(o.pwallet_),
+        m_pwallet(o.m_pwallet),
         id_(o.id_), creation_time_(o.creation_time_), state_(o.state_.load()),
         start_time_(o.start_time_), end_time_(o.end_time_),
         error_code_(o.error_code_), error_message_(o.error_message_),
@@ -48,7 +48,7 @@ AsyncRPCOperation::AsyncRPCOperation(const AsyncRPCOperation& o) :
 }
 
 AsyncRPCOperation& AsyncRPCOperation::operator=( const AsyncRPCOperation& other ) {
-    this->pwallet_ = other.pwallet_;
+    this->m_pwallet_ = other.m_pwallet;
     this->id_ = other.id_;
     this->creation_time_ = other.creation_time_;
     this->state_.store(other.state_.load());
