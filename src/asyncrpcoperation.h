@@ -146,8 +146,8 @@ protected:
 private:
 
     // Derived classes should write their own copy constructor and assignment operators
-    AsyncRPCOperation(const AsyncRPCOperation& orig);
-    AsyncRPCOperation& operator=( const AsyncRPCOperation& other );
+    AsyncRPCOperation(const AsyncRPCOperation& orig) = delete;
+    AsyncRPCOperation& operator=(const AsyncRPCOperation& other) = delete;
 
     // Initialized in the operation constructor, never to be modified again.
     AsyncRPCOperationId id_;

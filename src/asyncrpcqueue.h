@@ -19,7 +19,7 @@
 #include <memory>
 
 
-typedef std::unordered_map<AsyncRPCOperationId, std::shared_ptr<AsyncRPCOperation> > AsyncRPCOperationMap; 
+typedef std::unordered_map<AsyncRPCOperationId, std::shared_ptr<AsyncRPCOperation>> AsyncRPCOperationMap;
 
 
 class AsyncRPCQueue {

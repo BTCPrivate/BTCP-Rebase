@@ -38,29 +38,6 @@ AsyncRPCOperation::AsyncRPCOperation(std::shared_ptr<CWallet> const wallet) :
     set_state(OperationStatus::READY);
 }
 
-AsyncRPCOperation::AsyncRPCOperation(const AsyncRPCOperation& o) :
-        m_pwallet(o.m_pwallet),
-        id_(o.id_), creation_time_(o.creation_time_), state_(o.state_.load()),
-        start_time_(o.start_time_), end_time_(o.end_time_),
-        error_code_(o.error_code_), error_message_(o.error_message_),
-        result_(o.result_)
-{
-}
-
-AsyncRPCOperation& AsyncRPCOperation::operator=( const AsyncRPCOperation& other ) {
-    this->m_pwallet = other.m_pwallet;
-    this->id_ = other.id_;
-    this->creation_time_ = other.creation_time_;
-    this->state_.store(other.state_.load());
-    this->start_time_ = other.start_time_;
-    this->end_time_ = other.end_time_;
-    this->error_code_ = other.error_code_;
-    this->error_message_ = other.error_message_;
-    this->result_ = other.result_;
-    return *this;
-}
-
-
 AsyncRPCOperation::~AsyncRPCOperation() {
 }
 
