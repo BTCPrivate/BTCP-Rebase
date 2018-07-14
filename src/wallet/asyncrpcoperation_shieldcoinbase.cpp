@@ -484,10 +484,10 @@ UniValue AsyncRPCOperation_shieldcoinbase::getStatus() const {
  * Lock input utxos
  */
  void AsyncRPCOperation_shieldcoinbase::lock_utxos() {
-     LOCK2(cs_main, pwallet_->cs_wallet);
+     LOCK2(cs_main, m_pwallet->cs_wallet);
      for (auto utxo : inputs_) {
          COutPoint outpt(utxo.txid, utxo.vout);
-         pwallet_->LockCoin(outpt);
+         m_pwallet->LockCoin(outpt);
      }
 }
 
@@ -495,9 +495,9 @@ UniValue AsyncRPCOperation_shieldcoinbase::getStatus() const {
  * Unlock input utxos
  */
 void AsyncRPCOperation_shieldcoinbase::unlock_utxos() {
-    LOCK2(cs_main, pwallet_->cs_wallet);
+    LOCK2(cs_main, m_pwallet->cs_wallet);
     for (auto utxo : inputs_) {
         COutPoint outpt(utxo.txid, utxo.vout);
-        pwallet_->UnlockCoin(outpt);
+        m_pwallet->UnlockCoin(outpt);
     }
 }

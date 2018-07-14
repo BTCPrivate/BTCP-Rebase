@@ -85,7 +85,7 @@ AsyncRPCOperation_sendmany::AsyncRPCOperation_sendmany(
 
             // We don't need to lock on the wallet as spending key related methods are thread-safe
             SpendingKey key;
-            if (!pwallet_->GetSpendingKey(addr, key)) {
+            if (!m_pwallet->GetSpendingKey(addr, key)) {
                 throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid from address, no spending key found for zaddr");
             }
 
@@ -407,13 +407,13 @@ bool AsyncRPCOperation_sendmany::main_impl() {
     // change upon arrival of new blocks which contain joinsplit transactions.  This is likely
     // to happen as creating a chained joinsplit transaction can take longer than the block interval.
     if (z_inputs_.size() > 0) {
-        LOCK2(cs_main, pwallet_->cs_wallet);
+        LOCK2(cs_main, m_pwallet->cs_wallet);
         for (auto t : z_inputs_) {
             JSOutPoint jso = std::get<0>(t);
             std::vector<JSOutPoint> vOutPoints = { jso };
             uint256 inputAnchor;
             std::vector<boost::optional<ZCIncrementalWitness>> vInputWitnesses;
-            pwallet_->GetNoteWitnesses(vOutPoints, vInputWitnesses, inputAnchor);
+            m_pwallet->GetNoteWitnesses(vOutPoints, vInputWitnesses, inputAnchor);
             jsopWitnessAnchorMap[ jso.ToString() ] = WitnessAnchorData{ vInputWitnesses[0], inputAnchor };
         }
     }
@@ -538,7 +538,7 @@ bool AsyncRPCOperation_sendmany::main_impl() {
         // Consume change as the first input of the JoinSplit.
         //
         if (jsChange > 0) {
-            LOCK2(cs_main, pwallet_->cs_wallet);
+            LOCK2(cs_main, m_pwallet->cs_wallet);
 
             // Update tree state with previous joinsplit
             ZCIncrementalMerkleTree tree;
@@ -625,8 +625,8 @@ bool AsyncRPCOperation_sendmany::main_impl() {
             int wtxHeight = -1;
             int wtxDepth = -1;
             {
-                LOCK2(cs_main, pwallet_->cs_wallet);
-                const CWalletTx& wtx = pwallet_->mapWallet[jso.hash];
+                LOCK2(cs_main, m_pwallet->cs_wallet);
+                const CWalletTx& wtx = m_pwallet->mapWallet[jso.hash];
                 // Zero-confirmation notes belong to transactions which have not yet been mined
                 if (mapBlockIndex.find(wtx.hashBlock) == mapBlockIndex.end()) {
                     throw JSONRPCError(RPC_WALLET_ERROR, strprintf("mapBlockIndex does not contain block hash %s", wtx.hashBlock.ToString()));
@@ -832,9 +832,9 @@ bool AsyncRPCOperation_sendmany::find_utxos(bool fAcceptCoinbase=false) {
     set<CBitcoinAddress> setAddress = {fromtaddr_};
     vector<COutput> vecOutputs;
 
-    LOCK2(cs_main, pwallet_->cs_wallet);
+    LOCK2(cs_main, m_pwallet->cs_wallet);
 
-    pwallet_->AvailableCoins(vecOutputs, false, NULL, true, fAcceptCoinbase);
+    m_pwallet->AvailableCoins(vecOutputs, false, NULL, true, fAcceptCoinbase);
 
     BOOST_FOREACH(const COutput& out, vecOutputs) {
         if (!out.fSpendable) {
@@ -879,8 +879,8 @@ bool AsyncRPCOperation_sendmany::find_utxos(bool fAcceptCoinbase=false) {
 bool AsyncRPCOperation_sendmany::find_unspent_notes() {
     std::vector<CNotePlaintextEntry> entries;
     {
-        LOCK2(cs_main, pwallet_->cs_wallet);
-        pwallet_->GetFilteredNotes(entries, fromaddress_, mindepth_);
+        LOCK2(cs_main, m_pwallet->cs_wallet);
+        m_pwallet->GetFilteredNotes(entries, fromaddress_, mindepth_);
     }
 
     for (CNotePlaintextEntry & entry : entries) {
@@ -924,7 +924,7 @@ UniValue AsyncRPCOperation_sendmany::perform_joinsplit(AsyncJoinSplitInfo & info
     uint256 anchor;
     {
         LOCK(cs_main);
-        pwallet_->GetNoteWitnesses(outPoints, witnesses, anchor);
+        m_pwallet->GetNoteWitnesses(outPoints, witnesses, anchor);
     }
     return perform_joinsplit(info, witnesses, anchor);
 }
@@ -1117,10 +1117,10 @@ void AsyncRPCOperation_sendmany::add_taddr_outputs_to_tx() {
 
 void AsyncRPCOperation_sendmany::add_taddr_change_output_to_tx(CAmount amount) {
 
-    LOCK2(cs_main, pwallet_->cs_wallet);
+    LOCK2(cs_main, m_pwallet->cs_wallet);
 
     EnsureWalletIsUnlocked();
-    CReserveKey keyChange(pwallet_);
+    CReserveKey keyChange(m_pwallet);
     CPubKey vchPubKey;
     bool ret = keyChange.GetReservedKey(vchPubKey);
     if (!ret) {
