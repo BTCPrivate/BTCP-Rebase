@@ -60,6 +60,7 @@ class CBasicKeyStore : public CKeyStore
 {
 protected:
     mutable CCriticalSection cs_KeyStore;
+    mutable CCriticalSection cs_SpendingKeyStore;
 
     KeyMap mapKeys;
     WatchKeyMap mapWatchKeys;
