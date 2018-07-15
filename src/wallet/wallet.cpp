@@ -187,9 +187,6 @@ bool CWallet::AddZKey(const libzcash::SpendingKey &key)
     if (HaveViewingKey(addr))
         RemoveViewingKey(key.viewing_key());
 
-    if (!fFileBacked)
-        return true;
-
     if (!IsCrypted()) {
         return CWalletDB(strWalletFile).WriteZKey(addr,
                                                   key,
