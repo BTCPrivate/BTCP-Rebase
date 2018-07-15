@@ -319,6 +319,7 @@ public:
      *                         2014 (removed in commit 93a18a3)
      */
     mapValue_t mapValue;
+    mapNoteData_t mapNoteData;
     std::vector<std::pair<std::string, std::string> > vOrderForm;
     unsigned int fTimeReceivedIsTxTime;
     unsigned int nTimeReceived; //!< time received by this node
@@ -371,6 +372,7 @@ public:
     {
         pwallet = pwalletIn;
         mapValue.clear();
+        mapNoteData.clear();
         vOrderForm.clear();
         fTimeReceivedIsTxTime = false;
         nTimeReceived = 0;
@@ -404,6 +406,7 @@ public:
     {
         char fSpent = false;
         mapValue_t mapValueCopy = mapValue;
+        mapNoteData_t mapNoteDataCopy = mapNoteData;
 
         mapValueCopy["fromaccount"] = strFromAccount;
         WriteOrderPos(nOrderPos, mapValueCopy);
@@ -413,7 +416,7 @@ public:
 
         s << static_cast<const CMerkleTx&>(*this);
         std::vector<CMerkleTx> vUnused; //!< Used to be vtxPrev
-        s << vUnused << mapValueCopy << vOrderForm << fTimeReceivedIsTxTime << nTimeReceived << fFromMe << fSpent;
+        s << vUnused << mapValueCopy << mapNoteDataCopy << vOrderForm << fTimeReceivedIsTxTime << nTimeReceived << fFromMe << fSpent;
     }
 
     template<typename Stream>
@@ -424,7 +427,7 @@ public:
 
         s >> static_cast<CMerkleTx&>(*this);
         std::vector<CMerkleTx> vUnused; //!< Used to be vtxPrev
-        s >> vUnused >> mapValue >> vOrderForm >> fTimeReceivedIsTxTime >> nTimeReceived >> fFromMe >> fSpent;
+        s >> vUnused >> mapValue >> mapNoteData >> vOrderForm >> fTimeReceivedIsTxTime >> nTimeReceived >> fFromMe >> fSpent;
 
         strFromAccount = std::move(mapValue["fromaccount"]);
         ReadOrderPos(nOrderPos, mapValue);
@@ -578,6 +581,7 @@ public:
     std::string strOtherAccount;
     std::string strComment;
     mapValue_t mapValue;
+    mapNoteData_t mapNoteData;
     int64_t nOrderPos; //!< position in ordered transaction list
     uint64_t nEntryNo;
 
