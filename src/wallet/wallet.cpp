@@ -566,6 +566,21 @@ std::set<uint256> CWallet::GetConflicts(const uint256& txid) const
         for (TxSpends::const_iterator _it = range.first; _it != range.second; ++_it)
             result.insert(_it->second);
     }
+
+    std::pair<TxNullifiers::const_iterator, TxNullifiers::const_iterator> range_n;
+
+    for (const JSDescription& jsdesc : wtx.vjoinsplit) {
+        for (const uint256& nullifier : jsdesc.nullifiers) {
+            if (mapTxNullifiers.count(nullifier) <= 1) {
+                continue;  // No conflict if zero or one spends
+            }
+            range_n = mapTxNullifiers.equal_range(nullifier);
+            for (TxNullifiers::const_iterator it = range_n.first; it != range_n.second; ++it) {
+                result.insert(it->second);
+            }
+        }
+    }
+
     return result;
 }
 
