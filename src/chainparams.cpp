@@ -160,7 +160,7 @@ public:
         // guarantees the first 2 characters, when base58 encoded, are "SK"
         base58Prefixes[ZCSPENDING_KEY]     = {0xAB,0x36};
 
-        bech32_hrp = "p"; // SLIP-0173
+        bech32_hrp = "btcp"; // SLIP-0173
 
         vFixedSeeds = std::vector<SeedSpec6>(pnSeed6_main, pnSeed6_main + ARRAYLEN(pnSeed6_main));
 
@@ -276,7 +276,7 @@ public:
         // guarantees the first 2 characters, when base58 encoded, are "ST"
         base58Prefixes[ZCSPENDING_KEY]     = {0xAC,0x08};
 
-        bech32_hrp = "test"; // SLIP-0173
+        bech32_hrp = "tbtcp"; // SLIP-0173
 
         vFixedSeeds = std::vector<SeedSpec6>(pnSeed6_main, pnSeed6_main + ARRAYLEN(pnSeed6_test));
 
@@ -370,7 +370,7 @@ public:
         base58Prefixes[EXT_SECRET_KEY] = {0x04, 0x35, 0x83, 0x94};
         base58Prefixes[ZCPAYMENT_ADDRRESS] = {0x16,0xC0};
         base58Prefixes[ZCSPENDING_KEY]     = {0xAC,0x08};
-        bech32_hrp = "rtest"; // SLIP-0173
+        bech32_hrp = "regbtcp"; // SLIP-0173
 
         fDefaultConsistencyChecks = true;
         fRequireStandard = false;
