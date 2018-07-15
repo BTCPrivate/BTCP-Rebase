@@ -158,7 +158,7 @@ libzcash::PaymentAddress CWallet::GenerateNewZKey()
 {
     AssertLockHeld(cs_wallet); // mapZKeyMetadata
 
-    auto k = SpendingKey::random();
+    auto k = libzcash::SpendingKey::random();
     auto addr = k.address();
 
     // Check for collision, even though it is unlikely to ever occur

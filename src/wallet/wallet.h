@@ -21,6 +21,7 @@
 #include <wallet/joinsplit.h>
 #include <wallet/walletdb.h>
 #include <wallet/rpcwallet.h>
+#include <zcash/Address.hpp>
 
 #include <algorithm>
 #include <atomic>
