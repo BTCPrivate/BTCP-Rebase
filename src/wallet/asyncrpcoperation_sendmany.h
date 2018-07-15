@@ -21,7 +21,7 @@
 
 // Default transaction fee if caller does not specify one.
 #define ASYNC_RPC_OPERATION_DEFAULT_MINERS_FEE   10000
-#if 0
+
 using namespace libzcash;
 
 // A recipient is a tuple of address, amount, memo (optional if zaddr)
@@ -190,4 +190,3 @@ public:
 
 
 #endif /* ASYNCRPCOPERATION_SENDMANY_H */
-#endif

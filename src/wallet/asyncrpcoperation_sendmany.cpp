@@ -31,7 +31,7 @@
 #include <string>
 
 using namespace libzcash;
-#if 0
+
 int find_output(UniValue obj, int n) {
     UniValue outputMapValue = find_value(obj, "outputmap");
     if (!outputMapValue.isArray()) {
@@ -1170,4 +1170,3 @@ UniValue AsyncRPCOperation_sendmany::getStatus() const {
     obj.push_back(Pair("params", contextinfo_ ));
     return obj;
 }
-#endif

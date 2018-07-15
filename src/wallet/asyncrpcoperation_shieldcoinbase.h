@@ -24,7 +24,7 @@
 #define SHIELD_COINBASE_DEFAULT_MINERS_FEE   10000
 
 using namespace libzcash;
-#if 0
+
 struct ShieldCoinbaseUTXO {
     uint256 txid;
     int vout;
@@ -126,4 +126,3 @@ public:
 
 
 #endif /* ASYNCRPCOPERATION_SHIELDCOINBASE_H */
-#endif

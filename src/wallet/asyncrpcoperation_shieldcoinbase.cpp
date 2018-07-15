@@ -32,7 +32,7 @@
 
 
 using namespace libzcash;
-#if 0
+
 static int find_output(UniValue obj, int n) {
     UniValue outputMapValue = find_value(obj, "outputmap");
     if (!outputMapValue.isArray()) {
@@ -499,4 +499,3 @@ void AsyncRPCOperation_shieldcoinbase::unlock_utxos() {
         pwalletMain->UnlockCoin(outpt);
     }
 }
-#endif
