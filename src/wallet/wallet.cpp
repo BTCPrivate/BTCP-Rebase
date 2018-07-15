@@ -1570,7 +1570,7 @@ mapNoteData_t CWallet::FindMyNotes(const CTransaction& tx) const
                         noteData.insert(std::make_pair(jsoutpt, nd));
                     }
                     break;
-                } catch (const note_decryption_failed &err) {
+                } catch (const libzcash::note_decryption_failed &err) {
                     // Couldn't decrypt with this decryptor
                 } catch (const std::exception &exc) {
                     // Unexpected failure
