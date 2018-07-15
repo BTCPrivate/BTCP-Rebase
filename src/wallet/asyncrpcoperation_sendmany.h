@@ -11,7 +11,7 @@
 #include <primitives/transaction.h>
 #include <zcash/JoinSplit.hpp>
 #include <zcash/Address.hpp>
-#include <wallet.h>
+#include <wallet/wallet.h>
 #include <paymentdisclosure.h>
 
 #include <unordered_map>
@@ -79,7 +79,7 @@ private:
     std::string fromaddress_;
     bool isfromtaddr_;
     bool isfromzaddr_;
-    CBitcoinAddress fromtaddr_;
+    CTxDestination fromtaddr_;
     PaymentAddress frompaymentaddress_;
     SpendingKey spendingkey_;
 
