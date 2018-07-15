@@ -912,6 +912,56 @@ bool CWallet::MarkReplaced(const uint256& originalHash, const uint256& newHash)
     return success;
 }
 
+/**
+ * Ensure that every note in the wallet (for which we possess a spending key)
+ * has a cached nullifier.
+ */
+bool CWallet::UpdateNullifierNoteMap()
+{
+    {
+        LOCK(cs_wallet);
+
+        if (IsLocked())
+            return false;
+
+        ZCNoteDecryption dec;
+        for (std::pair<const uint256, CWalletTx>& wtxItem : mapWallet) {
+            for (mapNoteData_t::value_type& item : wtxItem.second.mapNoteData) {
+                if (!item.second.nullifier) {
+                    if (GetNoteDecryptor(item.second.address, dec)) {
+                        auto i = item.first.js;
+                        auto hSig = wtxItem.second.vjoinsplit[i].h_sig(
+                            *pzcashParams, wtxItem.second.joinSplitPubKey);
+                        item.second.nullifier = GetNoteNullifier(
+                            wtxItem.second.vjoinsplit[i],
+                            item.second.address,
+                            dec,
+                            hSig,
+                            item.first.n);
+                    }
+                }
+            }
+            UpdateNullifierNoteMapWithTx(wtxItem.second);
+        }
+    }
+    return true;
+}
+
+/**
+ * Update mapNullifiersToNotes with the cached nullifiers in this tx.
+ */
+void CWallet::UpdateNullifierNoteMapWithTx(const CWalletTx& wtx)
+{
+    {
+        LOCK(cs_wallet);
+        for (const mapNoteData_t::value_type& item : wtx.mapNoteData) {
+            if (item.second.nullifier) {
+                mapNullifiersToNotes[*item.second.nullifier] = item.first;
+            }
+        }
+    }
+}
+
 bool CWallet::AddToWallet(const CWalletTx& wtxIn, bool fFlushOnClose)
 {
     LOCK(cs_wallet);

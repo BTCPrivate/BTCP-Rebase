@@ -943,6 +943,8 @@ public:
     bool GetLabelDestination(CTxDestination &dest, const std::string& label, bool bForceNew = false);
 
     void MarkDirty();
+    bool UpdateNullifierNoteMap();
+    void UpdateNullifierNoteMapWithTx(const CWalletTx& wtx);
     bool AddToWallet(const CWalletTx& wtxIn, bool fFlushOnClose=true);
     bool LoadToWallet(const CWalletTx& wtxIn);
     void TransactionAddedToMempool(const CTransactionRef& tx) override;
