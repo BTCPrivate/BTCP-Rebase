@@ -933,6 +933,11 @@ public:
     void GetKeyBirthTimes(std::map<CTxDestination, int64_t> &mapKeyBirth) const EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
     unsigned int ComputeTimeSmart(const CWalletTx& wtx) const;
 
+    //! Generates a new zaddr
+    libzcash::PaymentAddress GenerateNewZKey();
+    //! Adds spending key to the store, and saves it to disk
+    bool AddZKey(const libzcash::SpendingKey &key);
+
     /**
      * Increment the next transaction order id
      * @return next transaction order id

@@ -153,6 +153,51 @@ const CWalletTx* CWallet::GetWalletTx(const uint256& hash) const
     return &(it->second);
 }
 
+// Generate a new spending key and return its public payment address
+libzcash::PaymentAddress CWallet::GenerateNewZKey()
+{
+    AssertLockHeld(cs_wallet); // mapZKeyMetadata
+
+    auto k = SpendingKey::random();
+    auto addr = k.address();
+
+    // Check for collision, even though it is unlikely to ever occur
+    if (CCryptoKeyStore::HaveSpendingKey(addr))
+        throw std::runtime_error("CWallet::GenerateNewZKey(): Collision detected");
+
+    // Create new metadata
+    int64_t nCreationTime = GetTime();
+    mapZKeyMetadata[addr] = CKeyMetadata(nCreationTime);
+
+    if (!AddZKey(k))
+        throw std::runtime_error("CWallet::GenerateNewZKey(): AddZKey failed");
+    return addr;
+}
+
+// Add spending key to keystore and persist to disk
+bool CWallet::AddZKey(const libzcash::SpendingKey &key)
+{
+    AssertLockHeld(cs_wallet); // mapZKeyMetadata
+    auto addr = key.address();
+
+    if (!CCryptoKeyStore::AddSpendingKey(key))
+        return false;
+
+    // check if we need to remove from viewing keys
+    if (HaveViewingKey(addr))
+        RemoveViewingKey(key.viewing_key());
+
+    if (!fFileBacked)
+        return true;
+
+    if (!IsCrypted()) {
+        return CWalletDB(strWalletFile).WriteZKey(addr,
+                                                  key,
+                                                  mapZKeyMetadata[addr]);
+    }
+    return true;
+}
+
 CPubKey CWallet::GenerateNewKey(WalletBatch &batch, bool internal)
 {
     AssertLockHeld(cs_wallet); // mapKeyMetadata
