@@ -1396,6 +1396,34 @@ bool CWallet::IsMine(const CTransaction& tx) const
 }
 
 /**
+ * Returns a nullifier if the SpendingKey is available
+ * Throws std::runtime_error if the decryptor doesn't match this note
+ */
+boost::optional<uint256> CWallet::GetNoteNullifier(const JSDescription& jsdesc,
+                                                   const libzcash::PaymentAddress& address,
+                                                   const ZCNoteDecryption& dec,
+                                                   const uint256& hSig,
+                                                   uint8_t n) const
+{
+    boost::optional<uint256> ret;
+    auto note_pt = libzcash::NotePlaintext::decrypt(
+        dec,
+        jsdesc.ciphertexts[n],
+        jsdesc.ephemeralKey,
+        hSig,
+        (unsigned char) n);
+    auto note = note_pt.note(address);
+    // SpendingKeys are only available if:
+    // - We have them (this isn't a viewing key)
+    // - The wallet is unlocked
+    libzcash::SpendingKey key;
+    if (GetSpendingKey(address, key)) {
+        ret = note.nullifier(key);
+    }
+    return ret;
+}
+
+/**
  * Finds all output notes in the given transaction that have been sent to
  * PaymentAddresses in this wallet.
  *

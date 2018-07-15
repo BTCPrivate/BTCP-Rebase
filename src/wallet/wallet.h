@@ -1057,6 +1057,12 @@ public:
     bool IsChange(const CTxOut& txout) const;
     CAmount GetChange(const CTxOut& txout) const;
     bool IsMine(const CTransaction& tx) const;
+    boost::optional<uint256> GetNoteNullifier(
+        const JSDescription& jsdesc,
+        const libzcash::PaymentAddress& address,
+        const ZCNoteDecryption& dec,
+        const uint256& hSig,
+        uint8_t n) const;
     mapNoteData_t FindMyNotes(const CTransaction& tx) const;
     /** should probably be renamed to IsRelevantToMe */
     bool IsFromMe(const CTransaction& tx) const;
