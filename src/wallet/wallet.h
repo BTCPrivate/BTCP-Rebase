@@ -823,6 +823,7 @@ public:
     std::map<CTxDestination, CAddressBookData> mapAddressBook;
 
     std::set<COutPoint> setLockedCoins;
+    std::set<JSOutPoint> setLockedNotes;
 
     const CWalletTx* GetWalletTx(const uint256& hash) const;
 
@@ -860,6 +861,13 @@ public:
     void UnlockCoin(const COutPoint& output) EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
     void UnlockAllCoins() EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
     void ListLockedCoins(std::vector<COutPoint>& vOutpts) const EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
+
+    // Z
+    bool IsLockedNote(const JSOutPoint& outpt) const EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
+    void LockNote(const JSOutPoint& output) EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
+    void UnlockNote(const JSOutPoint& output) EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
+    void UnlockAllNotes() EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
+    std::vector<JSOutPoint> ListLockedNotes() EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
 
     /*
      * Rescan abort properties
