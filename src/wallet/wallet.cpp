@@ -175,7 +175,7 @@ libzcash::PaymentAddress CWallet::GenerateNewZKey()
 }
 
 // Add spending key to keystore and persist to disk
-bool CWallet::AddZKey(const libzcash::SpendingKey &key)
+bool CWallet::AddZKeyWithDB(WalletBatch &batch, const libzcash::SpendingKey &key)
 {
     AssertLockHeld(cs_wallet); // mapZKeyMetadata
     auto addr = key.address();
@@ -188,11 +188,17 @@ bool CWallet::AddZKey(const libzcash::SpendingKey &key)
         RemoveViewingKey(key.viewing_key());
 
     if (!IsCrypted()) {
-        return CWalletDB(strWalletFile).WriteZKey(addr,
-                                                  key,
-                                                  mapZKeyMetadata[addr]);
+        return batch.WriteZKey(addr,
+                               key,
+                               mapZKeyMetadata[addr]);
     }
     return true;
+}
+
+bool CWallet::AddZKey(const libzcash::SpendingKey &key)
+{
+    WalletBatch batch(*database);
+    return CWallet::AddZKeyWithDB(batch, key);
 }
 
 CPubKey CWallet::GenerateNewKey(WalletBatch &batch, bool internal)
@@ -306,8 +312,8 @@ bool CWallet::AddKeyPubKeyWithDB(WalletBatch &batch, const CKey& secret, const C
 
     if (!IsCrypted()) {
         return batch.WriteKey(pubkey,
-                                                 secret.GetPrivKey(),
-                                                 mapKeyMetadata[pubkey.GetID()]);
+                              secret.GetPrivKey(),
+                              mapKeyMetadata[pubkey.GetID()]);
     }
     return true;
 }

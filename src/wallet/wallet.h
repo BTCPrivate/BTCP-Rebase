@@ -986,9 +986,10 @@ public:
     unsigned int ComputeTimeSmart(const CWalletTx& wtx) const;
 
     //! Generates a new zaddr
-    libzcash::PaymentAddress GenerateNewZKey();
+    libzcash::PaymentAddress GenerateNewZKey() EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
     //! Adds spending key to the store, and saves it to disk
-    bool AddZKey(const libzcash::SpendingKey &key);
+    bool AddZKey(const libzcash::SpendingKey &key) EXCLUSIVE_LOCKS_REQUIRED(cs_wallet); // no override
+    bool AddZKeyWithDB(WalletBatch &batch, const libzcash::SpendingKey &key) EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
 
     /**
      * Increment the next transaction order id

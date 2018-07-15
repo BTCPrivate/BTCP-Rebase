@@ -185,6 +185,8 @@ public:
 
     bool WriteCScript(const uint160& hash, const CScript& redeemScript);
 
+    bool WriteZKey(const libzcash::PaymentAddress& addr, const libzcash::SpendingKey& key, const CKeyMetadata& keyMeta);
+
     bool WriteWatchOnly(const CScript &script, const CKeyMetadata &keymeta);
     bool EraseWatchOnly(const CScript &script);
 
