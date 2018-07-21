@@ -828,6 +828,8 @@ DBErrors CWallet::ReorderTransactions()
             {
                 if (!batch.WriteTx(*pwtx))
                     return DBErrors::LOAD_FAIL;
+                if (!batch.WriteWitnessCacheSize(nWitnessCacheSize))
+                    return DBErrors::LOAD_FAIL;
             }
             else
                 if (!batch.WriteAccountingEntry(pacentry->nEntryNo, *pacentry))
@@ -851,6 +853,8 @@ DBErrors CWallet::ReorderTransactions()
             if (pwtx)
             {
                 if (!batch.WriteTx(*pwtx))
+                    return DBErrors::LOAD_FAIL;
+                if (!batch.WriteWitnessCacheSize(nWitnessCacheSize))
                     return DBErrors::LOAD_FAIL;
             }
             else

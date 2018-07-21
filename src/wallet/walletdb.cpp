@@ -515,8 +515,14 @@ ReadKeyValue(CWallet* pwallet, CDataStream& ssKey, CDataStream& ssValue,
                 strErr = "Error reading wallet database: SetHDChain failed";
                 return false;
             }
-        } else if (strType != "bestblock" && strType != "bestblock_nomerkle"){
+        }
+        else if (strType != "bestblock" && strType != "bestblock_nomerkle")
+        {
             wss.m_unknown_records++;
+        }
+        else if (strType == "witnesscachesize")
+        {
+            ssValue >> pwallet->nWitnessCacheSize;
         }
     } catch (...)
     {
