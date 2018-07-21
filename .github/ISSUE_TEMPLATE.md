@@ -34,9 +34,9 @@ Run `btpcd --version` to find out
 - Compiler version (gcc -version):
 
 ### Any extra information that might be useful in the debugging process.
-This includes the relevant contents of `~/.btcprivate/debug.log`. You can paste raw text, attach the file directly in the issue or link to the text via a pastebin type site.
+This includes the relevant contents of `~/.btcp/debug.log`. You can paste raw text, attach the file directly in the issue or link to the text via a pastebin type site.
 Please also include any non-standard things you did during compilation (extra flags, dependency version changes etc.) if applicable.
 
-### Do you have a back up of `~/.btcprivate` directory and/or take a VM snapshot?
-- Backing up / making a copy of the `~/.btcprivate` directory might help make the problem reproducible. Please redact appropriately.
+### Do you have a back up of `~/.btcp` directory and/or take a VM snapshot?
+- Backing up / making a copy of the `~/.btcp` directory might help make the problem reproducible. Please redact appropriately.
 - Taking a VM snapshot is really helpful for interactively testing fixes
