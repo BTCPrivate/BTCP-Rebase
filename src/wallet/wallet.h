@@ -16,6 +16,8 @@
 #include <script/ismine.h>
 #include <script/sign.h>
 #include <util.h>
+#include <consensus/reorg.h>
+#include <consensus/consensus.h>
 #include <wallet/crypter.h>
 #include <wallet/coinselection.h>
 #include <wallet/joinsplit.h>
@@ -62,6 +64,11 @@ static const unsigned int DEFAULT_TX_CONFIRM_TARGET = 6;
 static const bool DEFAULT_WALLET_RBF = false;
 static const bool DEFAULT_WALLETBROADCAST = true;
 static const bool DEFAULT_DISABLE_WALLET = false;
+
+//! Size of note witness cache
+//  Should be large enough that we can expect not to reorg beyond our cache
+//  unless there is some exceptional network disruption.
+static const unsigned int NOTE_WITNESS_CACHE_SIZE = MAX_REORG_LENGTH + 1;
 
 static const int64_t TIMESTAMP_MIN = 0;
 
@@ -714,6 +721,17 @@ private:
     void AddToSpends(const uint256& nullifier, const uint256& wtxid);
     void AddToSpends(const uint256& wtxid);
 
+public:
+    /*
+     * Size of the incremental witness cache for the notes in our wallet.
+     * This will always be greater than or equal to the size of the largest
+     * incremental witness cache in any transaction in mapWallet.
+     */
+    int64_t nWitnessCacheSize;
+
+    void ClearNoteWitnessCache();
+
+private:
     /* Mark a transaction (and its in-wallet descendants) as conflicting with a particular block. */
     void MarkConflicted(const uint256& hashBlock, const uint256& hashTx);
 

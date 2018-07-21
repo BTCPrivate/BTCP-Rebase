@@ -150,6 +150,11 @@ bool WalletBatch::WriteMinVersion(int nVersion)
     return WriteIC(std::string("minversion"), nVersion);
 }
 
+ bool WalletBatch::WriteWitnessCacheSize(int64_t nWitnessCacheSize)
+ {
+    return WriteIC(std::string("witnesscachesize"), nWitnessCacheSize);
+ }
+
 bool WalletBatch::ReadAccount(const std::string& strAccount, CAccount& account)
 {
     account.SetNull();

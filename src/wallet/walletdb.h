@@ -200,6 +200,7 @@ public:
     bool ErasePool(int64_t nPool);
 
     bool WriteMinVersion(int nVersion);
+    bool WriteWitnessCacheSize(int64_t nWitnessCacheSize);
 
     /// This writes directly to the database, and will not update the CWallet's cached accounting entries!
     /// Use wallet.AddAccountingEntry instead, to write *and* update its caches.
