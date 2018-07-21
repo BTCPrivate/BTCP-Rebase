@@ -66,7 +66,7 @@ address. The same address can be used in more than one notification.
 
 For instance:
 
-    $ bitcoind -zmqpubhashtx=tcp://127.0.0.1:28332 \
+    $ bitcoind -zmqpubhashtx=tcp://127.0.0.1:27932 \
                -zmqpubrawtx=ipc:///tmp/bitcoind.tx.raw
 
 Each PUB notification has a topic and body, where the header

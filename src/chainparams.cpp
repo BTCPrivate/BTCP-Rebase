@@ -202,7 +202,7 @@ public:
 };
 
 /**
- * Testnet (v3)
+ * Testnet
  */
 class CTestNetParams : public CChainParams {
 public:
@@ -351,7 +351,7 @@ public:
         pchMessageStart[2] = 0x3f;
         pchMessageStart[3] = 0x5f;
 
-        nDefaultPort = 17944;
+        nDefaultPort = 17444;
 
         nPruneAfterHeight = 1000;
 
