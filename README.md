@@ -3,7 +3,7 @@ Bitcoin Private Rebase
 
 IN DEVELOPMENT - FOR TESTING ONLY - DO NOT USE IN PRODUCTION
 ===========
-This is currently in development software, not all consensus rules have been implemented. You should NOT rely on this in production yet, for production use cases please use https://github.com/BTCPrivate/BitcoinPrivate/
+This is currently in development software, not all consensus rules have been implemented. **You should NOT rely on this in production yet**, for production use cases please use https://github.com/BTCPrivate/BitcoinPrivate/
 
 Development Status
 ------
@@ -15,7 +15,6 @@ Build Instructions
 -------
 
 #### Linux (>= Ubuntu 16.04):
-
 ```
 cd scripts
 ./build.sh
