@@ -357,8 +357,10 @@ libbitcoin_consensus_a_SOURCES = \
   consensus/merkle.h \
   consensus/params.h \
   consensus/validation.h \
+  fs.cpp \
   hash.cpp \
   hash.h \
+  logging.cpp \
   prevector.h \
   primitives/block.cpp \
   primitives/block.h \
@@ -383,6 +385,7 @@ libbitcoin_consensus_a_SOURCES = \
   uint252.h \
   utilstrencodings.cpp \
   utilstrencodings.h \
+  utiltime.cpp \
   version.h
 
 # common: shared between bitcoind, and bitcoin-qt and non-server tools
@@ -545,7 +548,7 @@ libzcash_a_SOURCES = \
   zcash/circuit/prfs.tcc \
   zcash/circuit/utils.tcc
 
-libzcash_a_CPPFLAGS = -DMULTICORE -fopenmp -fPIC -DBINARY_OUTPUT -DCURVE_ALT_BN128 -DBOOST_SPIRIT_THREADSAFE -DHAVE_BUILD_INFO -D__STDC_FORMAT_MACROS $(HARDENED_CPPFLAGS) $(HARDENED_CXXFLAGS) $(HARDENED_LDFLAGS) -pipe $(SAN_LDFLAGS) -O1 -g -Wstack-protector $(SAN_CXXFLAGS) -fstack-protector-all -fPIE -fvisibility=hidden -DSTATIC $(BITCOIN_INCLUDES)
+libzcash_a_CPPFLAGS = -DMULTICORE -Xpreprocessor -fopenmp -lomp -fPIC -DBINARY_OUTPUT -DCURVE_ALT_BN128 -DBOOST_SPIRIT_THREADSAFE -DHAVE_BUILD_INFO -D__STDC_FORMAT_MACROS $(HARDENED_CPPFLAGS) $(HARDENED_CXXFLAGS) $(HARDENED_LDFLAGS) -pipe $(SAN_LDFLAGS) -O1 -g -Wstack-protector $(SAN_CXXFLAGS) -fstack-protector-all -fPIE -fvisibility=hidden -DSTATIC $(BITCOIN_INCLUDES)
 
 libzcash_a_CXXFLAGS = $(SAN_CXXFLAGS) $(HARDENED_CXXFLAGS) -fwrapv -fno-strict-aliasing
 
@@ -563,9 +566,9 @@ if GLIBC_BACK_COMPAT
 endif
 
 libbitcoinconsensus_la_LDFLAGS = $(AM_LDFLAGS) -no-undefined $(RELDFLAGS)
-libbitcoinconsensus_la_LIBADD = $(LIBSECP256K1)
+libbitcoinconsensus_la_LIBADD = $(LIBSECP256K1) $(LIBZCASH)
 libbitcoinconsensus_la_CPPFLAGS = $(AM_CPPFLAGS) -I$(builddir)/obj -I$(srcdir)/secp256k1/include -DBUILD_BITCOIN_INTERNAL
-libbitcoinconsensus_la_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
+libbitcoinconsensus_la_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)  -lboost_system-mt -lboost_filesystem-mt -lboost_thread-mt -lsodium
 
 endif
 #

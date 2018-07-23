@@ -13,7 +13,24 @@ This should build on linux and sync the full BTCP mainnet chain. Wallet code and
 
 Build Instructions
 -------
-Only linux builds have been reasonably tested. `scripts/build/sh` should build all the dependencies and bootstrap a linux build. If you want to manually configure, you must pass --disable-wallet currently.
+Only linux builds have been reasonably tested. `scripts/build/sh` should build all the dependencies and bootstrap a linux build.
+
+For macOS High Sierra users, compilation can be achieved by first installing libomp (necessary as Apple's version of Clang does not have support for OpenMP included); you can do that via the following Terminal commands:
+
+Install XCode:
+```
+xcode-select --install
+```
+Install Homebrew:
+```
+/usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+```
+Install libomp:
+```
+brew install libomp
+```
+Then run the `scripts/build-mac.sh` to compile.
+
 
 https://btcprivate.org
 

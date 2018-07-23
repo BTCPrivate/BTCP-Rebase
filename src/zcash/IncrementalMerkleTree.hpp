@@ -1,6 +1,7 @@
 #ifndef ZC_INCREMENTALMERKLETREE_H_
 #define ZC_INCREMENTALMERKLETREE_H_
 
+#include <array>
 #include <deque>
 #include <boost/optional.hpp>
 #include <boost/static_assert.hpp>
