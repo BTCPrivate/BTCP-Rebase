@@ -108,5 +108,5 @@ CPPFLAGS+="-Xpreprocessor -fopenmp -lomp -L/usr/local/opt/libomp/lib -I/usr/loca
 
 HOST="$HOST" BUILD="$BUILD" "$MAKE" "$@" -C ./depends/ V=1
 ./autogen.sh
-./configure --prefix="${PREFIX}" --host="$HOST" --build="$BUILD" "$HARDENING_ARG" "$LCOV_ARG" "$TEST_ARG" "$MINING_ARG" $CONFIGURE_FLAGS CXXFLAGS='-g' CPPFLAGS="${CPPFLAGS}"
+./configure --prefix="${PREFIX}" --host="$HOST" --build="$BUILD" "$HARDENING_ARG" "$LCOV_ARG" "$TEST_ARG" "$MINING_ARG" $CONFIGURE_FLAGS CXXFLAGS='-g' CPPFLAGS="${CPPFLAGS}" --enable-mac-build-script=yes
 "$MAKE" "$@" V=1

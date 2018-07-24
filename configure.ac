@@ -199,6 +199,17 @@ if test "x$use_asm" = xyes; then
   AC_DEFINE(USE_ASM, 1, [Define this symbol to build in assembly routines])
 fi
 
+dnl Temporary flag to get compilation on Mac working without interrupting Linux values
+AC_ARG_ENABLE([mac-build-script],
+  [AS_HELP_STRING([--mac-build-script],
+  [Enable mac-specific compilation values (default is no)])],
+  [mac_build_script=$enableval],
+  [mac_build_script=no])
+AM_CONDITIONAL([MAC_BUILD_SCRIPT],[test x$mac_build_script = xyes])
+if test "x$mac_build_script" = xyes; then
+  AC_DEFINE(MAC_BUILD_SCRIPT, 1, [Define this symbol to use mac-specific build values])
+fi
+
 AC_ARG_WITH([system-univalue],
   [AS_HELP_STRING([--with-system-univalue],
   [Build with system UniValue (default is no)])],
