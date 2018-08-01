@@ -1190,12 +1190,14 @@ CAmount GetBlockSubsidy(int nHeight, const Consensus::Params& consensusParams)
     CAmount nSubsidy = 12.5 * COIN;
 
     int halvingInterval = consensusParams.nSubsidyHalvingInterval;
-    if(isForkEnabled(nHeight)) {
+    uint64_t forkStartHeight = Params().ForkStartHeight();
+    
+    if(isForkEnabled(nHeight, forkStartHeight)) {
         halvingInterval >>= 2;
     }
 
     int halvings = nHeight / halvingInterval;
-    if(isForkEnabled(nHeight))
+    if(isForkEnabled(nHeight, forkStartHeight))
         halvings += 2;
 
     // Force block reward to zero when right shift is undefined.
