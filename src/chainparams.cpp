@@ -355,8 +355,8 @@ public:
 
         nPruneAfterHeight = 1000;
 
-        nEquihashN = 200;
-        nEquihashK = 9;
+        nEquihashN = 48;
+        nEquihashK = 5;
 
         uint256 nNonce = uint256S("0000000000000000000000000000000000000000000000000000000000000009");
         genesis = CreateGenesisBlock(1482971059, nNonce, 0x200f0f0f, 4, 0, GenesisSolutions::REGTEST);
@@ -392,8 +392,8 @@ public:
 
         m_fallback_fee_enabled = true;
 
-        nForkStartHeight = 10;
-        nForkHeightRange = 300;
+        nForkStartHeight = 0;
+        nForkHeightRange = 0;
     }
 };
 
