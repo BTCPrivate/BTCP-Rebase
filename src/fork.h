@@ -27,7 +27,7 @@ inline bool isForkEnabled(int nHeight, int forkStartHeight)
 }
 
 bool ContextualCheckBlockFork(const CBlock& block, CValidationState& state,
-                              const CChainParams& chainparams, const CBlockIndex * pindex);
+                              const CChainParams& chainparams, const CBlockIndex* pindex);
 
 std::string GetUTXOFileName(int);
 
