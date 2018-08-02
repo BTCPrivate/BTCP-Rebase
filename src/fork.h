@@ -1,9 +1,9 @@
-// Copyright (c) 2018      The Bitcoin Private developers
+// Copyright (c) 2018 The Bitcoin Private developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef BTCP_FORK_H
-#define BTCP_FORK_H
+#ifndef BITCOIN_FORK_H
+#define BITCOIN_FORK_H
 
 #include <consensus/validation.h>
 #include <primitives/block.h>
