@@ -1,5 +1,10 @@
-#ifndef ZC_ZCASH_H_
-#define ZC_ZCASH_H_
+// Copyright (c) 2018 The Bitcoin Private developers
+// Copyright (c) 2016 The Zcash developers
+// Distributed under the MIT software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
+#ifndef BITCOIN_ZCASH_ZCASH_H
+#define BITCOIN_ZCASH_ZCASH_H
 
 #define ZC_NUM_JS_INPUTS 2
 #define ZC_NUM_JS_OUTPUTS 2
@@ -14,4 +19,4 @@
 
 #define ZC_NOTEPLAINTEXT_SIZE (ZC_NOTEPLAINTEXT_LEADING + ZC_V_SIZE + ZC_RHO_SIZE + ZC_R_SIZE + ZC_MEMO_SIZE)
 
-#endif // ZC_ZCASH_H_
+#endif // BITCOIN_ZCASH_ZCASH_H

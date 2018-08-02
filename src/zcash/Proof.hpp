@@ -1,5 +1,10 @@
-#ifndef ZC_PROOF_H_
-#define ZC_PROOF_H_
+// Copyright (c) 2018 The Bitcoin Private developers
+// Copyright (c) 2016 The Zcash developers
+// Distributed under the MIT software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
+#ifndef BITCOIN_ZCASH_PROOF_H
+#define BITCOIN_ZCASH_PROOF_H
 
 #include "serialize.h"
 #include "uint256.h"
@@ -274,4 +279,4 @@ public:
 
 }
 
-#endif // ZC_PROOF_H_
+#endif // BITCOIN_ZCASH_PROOF_H

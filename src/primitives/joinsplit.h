@@ -4,8 +4,8 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef BTCP_PRIMITIVES_JOINSPLIT_H
-#define BTCP_PRIMITIVES_JOINSPLIT_H
+#ifndef BITCOIN_PRIMITIVES_JOINSPLIT_H
+#define BITCOIN_PRIMITIVES_JOINSPLIT_H
 
 #include <amount.h>
 #include <random.h>
@@ -145,4 +145,4 @@ public:
     }
 };
 
-#endif
+#endif // BITCOIN_PRIMITIVES_JOINSPLIT_H

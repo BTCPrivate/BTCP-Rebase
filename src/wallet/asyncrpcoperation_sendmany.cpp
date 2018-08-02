@@ -159,7 +159,7 @@ void AsyncRPCOperation_sendmany::main() {
     } else {
         s += strprintf(", error=%s)\n", getErrorMessage());
     }
-    LogPrintf("%s",s);
+    LogPrintf("%s\n",s);
 
     // !!! Payment disclosure START
     if (success && paymentDisclosureMode && paymentDisclosureData_.size()>0) {

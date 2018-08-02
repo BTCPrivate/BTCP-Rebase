@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 ##
 # @author     This file is part of libsnark, developed by SCIPR Lab
 #             and contributors (see AUTHORS).
@@ -19,9 +19,9 @@ def words_to_bytes(arr):
     return sum(([x >> 24, (x >> 16) & 0xff, (x >> 8) & 0xff, x & 0xff] for x in arr), [])
 
 def bytes_to_words(arr):
-    l = len(arr)
-    assert l % 4 == 0
-    return [(arr[i*4 + 3] << 24) + (arr[i*4+2] << 16) + (arr[i*4+1] << 8) + arr[i*4] for i in xrange(l//4)]
+    length = len(arr)
+    assert length % 4 == 0
+    return [(arr[i*4 + 3] << 24) + (arr[i*4+2] << 16) + (arr[i*4+1] << 8) + arr[i*4] for i in xrange(length//4)]
 
 def cpp_val(s, log_radix=32):
     if log_radix == 8:

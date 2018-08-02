@@ -1,5 +1,10 @@
-#ifndef ZC_ADDRESS_H_
-#define ZC_ADDRESS_H_
+// Copyright (c) 2018 The Bitcoin Private developers
+// Copyright (c) 2016 The Zcash developers
+// Distributed under the MIT software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
+#ifndef BITCOIN_ZCASH_ADDRESS_H
+#define BITCOIN_ZCASH_ADDRESS_H
 
 #include "uint256.h"
 #include "uint252.h"
@@ -88,4 +93,4 @@ public:
 
 }
 
-#endif // ZC_ADDRESS_H_
+#endif // BITCOIN_ZCASH_ADDRESS_H

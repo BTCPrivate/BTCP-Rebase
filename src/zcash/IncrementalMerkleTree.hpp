@@ -1,5 +1,10 @@
-#ifndef ZC_INCREMENTALMERKLETREE_H_
-#define ZC_INCREMENTALMERKLETREE_H_
+// Copyright (c) 2018 The Bitcoin Private developers
+// Copyright (c) 2016 The Zcash developers
+// Distributed under the MIT software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
+#ifndef BITCOIN_ZCASH_INCREMENTALMERKLETREE_H
+#define BITCOIN_ZCASH_INCREMENTALMERKLETREE_H
 
 #include <array>
 #include <deque>
@@ -203,4 +208,4 @@ typedef libzcash::IncrementalMerkleTree<INCREMENTAL_MERKLE_TREE_DEPTH_TESTING, l
 typedef libzcash::IncrementalWitness<INCREMENTAL_MERKLE_TREE_DEPTH, libzcash::SHA256Compress> ZCIncrementalWitness;
 typedef libzcash::IncrementalWitness<INCREMENTAL_MERKLE_TREE_DEPTH_TESTING, libzcash::SHA256Compress> ZCTestingIncrementalWitness;
 
-#endif /* ZC_INCREMENTALMERKLETREE_H_ */
+#endif // BITCOIN_ZCASH_INCREMENTALMERKLETREE_H
