@@ -139,7 +139,7 @@ void AsyncRPCOperation_shieldcoinbase::main() {
     } else {
         s += strprintf(", error=%s)\n", getErrorMessage());
     }
-    LogPrintf("%s",s);
+    LogPrintf("%s\n",s);
 
     unlock_utxos(); // clean up
 

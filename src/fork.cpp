@@ -23,7 +23,7 @@ std::string GetUTXOFileName(int nHeight, const CChainParams& chainparams)
     boost::filesystem::path utxo_path(GetDataDir() / "utxo_snapshot");
     if (utxo_path.empty() || !utxo_path.has_filename())
     {
-        LogPrintf("GetUTXOFileName(): UTXO path is not specified, add utxo-path=<path-to-utxo-files> to your bitcoin.conf and restart");
+        LogPrintf("GetUTXOFileName(): UTXO path is not specified, add utxo-path=<path-to-utxo-files> to your bitcoin.conf and restart\n");
         return "";
     }
 
