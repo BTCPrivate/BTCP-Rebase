@@ -52,4 +52,4 @@ public:
     friend inline bool operator==(const uint252& a, const uint252& b) { return a.contents == b.contents; }
 };
 
-#endif // BITCOIN_UINT_252_H
+#endif // BITCOIN_UINT252_H

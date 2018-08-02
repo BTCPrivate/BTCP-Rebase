@@ -31,4 +31,4 @@ bool ContextualCheckBlockFork(const CBlock& block, CValidationState& state,
 
 std::string GetUTXOFileName(int);
 
-#endif
+#endif // BITCOIN_FORK_H

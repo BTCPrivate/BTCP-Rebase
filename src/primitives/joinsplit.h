@@ -145,4 +145,4 @@ public:
     }
 };
 
-#endif
+#endif // BITCOIN_PRIMITIVES_JOINSPLIT_H

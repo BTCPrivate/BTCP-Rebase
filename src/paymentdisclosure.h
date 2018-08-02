@@ -145,4 +145,4 @@ struct PaymentDisclosure {
 typedef std::pair<PaymentDisclosureKey, PaymentDisclosureInfo> PaymentDisclosureKeyInfo;
 
 
-#endif // ZCASH_PAYMENTDISCLOSURE_H
+#endif // BITCOIN_PAYMENTDISCLOSURE_H

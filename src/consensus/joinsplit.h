@@ -7,4 +7,4 @@
 
 bool CheckTransactionJoinsplits(const CTransaction& tx, CValidationState &state);
 
-#endif
+#endif // BITCOIN_CONSENSUS_JOINSPLIT_H
