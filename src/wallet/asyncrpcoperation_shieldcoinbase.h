@@ -2,8 +2,8 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef ASYNCRPCOPERATION_SHIELDCOINBASE_H
-#define ASYNCRPCOPERATION_SHIELDCOINBASE_H
+#ifndef BITCOIN_WALLET_ASYNCRPCOPERATION_SHIELDCOINBASE_H
+#define BITCOIN_WALLET_ASYNCRPCOPERATION_SHIELDCOINBASE_H
 
 #include <asyncrpcoperation.h>
 #include <amount.h>
@@ -125,4 +125,4 @@ public:
 };
 
 
-#endif /* ASYNCRPCOPERATION_SHIELDCOINBASE_H */
+#endif // BITCOIN_WALLET_ASYNCRPCOPERATION_SHIELDCOINBASE_H

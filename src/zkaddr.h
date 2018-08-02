@@ -55,4 +55,4 @@ public:
     CZCSpendingKey(const libzcash::SpendingKey& addr) { Set(addr); }
 };
 
-#endif
+#endif // BITCOIN_ZKADDR_H

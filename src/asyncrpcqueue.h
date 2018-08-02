@@ -66,6 +66,6 @@ private:
     std::vector<std::thread> workers_;
 };
 
-#endif
+#endif // BITCOIN_ASYNCRPCQUEUE_H
 
 

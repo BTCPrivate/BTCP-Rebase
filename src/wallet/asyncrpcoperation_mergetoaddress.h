@@ -2,8 +2,8 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef ASYNCRPCOPERATION_MERGETOADDRESS_H
-#define ASYNCRPCOPERATION_MERGETOADDRESS_H
+#ifndef BITCOIN_WALLET_ASYNCRPCOPERATION_MERGETOADDRESS_H
+#define BITCOIN_WALLET_ASYNCRPCOPERATION_MERGETOADDRESS_H
 
 #include <amount.h>
 #include <asyncrpcoperation.h>
@@ -189,5 +189,4 @@ public:
     }
 };
 
-
-#endif /* ASYNCRPCOPERATION_MERGETOADDRESS_H */
+#endif // BITCOIN_WALLET_ASYNCRPCOPERATION_MERGETOADDRESS_H

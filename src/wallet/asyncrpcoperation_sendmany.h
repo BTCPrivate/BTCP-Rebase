@@ -2,8 +2,8 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef ASYNCRPCOPERATION_SENDMANY_H
-#define ASYNCRPCOPERATION_SENDMANY_H
+#ifndef BITCOIN_WALLET_ASYNCRPCOPERATION_SENDMANY_H
+#define BITCOIN_WALLET_ASYNCRPCOPERATION_SENDMANY_H
 
 #include <asyncrpcoperation.h>
 #include <amount.h>
@@ -189,4 +189,4 @@ public:
 };
 
 
-#endif /* ASYNCRPCOPERATION_SENDMANY_H */
+#endif // BITCOIN_WALLET_ASYNCRPCOPERATION_SENDMANY_H

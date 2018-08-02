@@ -150,5 +150,5 @@ private:
     int64_t creation_time_;
 };
 
-#endif /* ASYNCRPCOPERATION_H */
+#endif // BITCOIN_ASYNCRPCOPERATION_H
 
