@@ -332,12 +332,12 @@ if [ `%{_sbindir}/sestatus |grep -c "disabled"` -eq 0 ]; then
 for selinuxvariant in %{selinux_variants}; do
 	%{_sbindir}/semodule -s ${selinuxvariant} -i %{_datadir}/selinux/${selinuxvariant}/bitcoin.pp &> /dev/null || :
 done
-%{_sbindir}/semanage port -a -t bitcoin_port_t -p tcp 8332
-%{_sbindir}/semanage port -a -t bitcoin_port_t -p tcp 8333
-%{_sbindir}/semanage port -a -t bitcoin_port_t -p tcp 18332
-%{_sbindir}/semanage port -a -t bitcoin_port_t -p tcp 18333
-%{_sbindir}/semanage port -a -t bitcoin_port_t -p tcp 18443
-%{_sbindir}/semanage port -a -t bitcoin_port_t -p tcp 18444
+%{_sbindir}/semanage port -a -t bitcoin_port_t -p tcp 7932
+%{_sbindir}/semanage port -a -t bitcoin_port_t -p tcp 7933
+%{_sbindir}/semanage port -a -t bitcoin_port_t -p tcp 17932
+%{_sbindir}/semanage port -a -t bitcoin_port_t -p tcp 17933
+%{_sbindir}/semanage port -a -t bitcoin_port_t -p tcp 17443
+%{_sbindir}/semanage port -a -t bitcoin_port_t -p tcp 17444
 %{_sbindir}/fixfiles -R bitcoin-server restore &> /dev/null || :
 %{_sbindir}/restorecon -R %{_localstatedir}/lib/bitcoin || :
 fi
@@ -353,12 +353,12 @@ fi
 # SELinux
 if [ $1 -eq 0 ]; then
 	if [ `%{_sbindir}/sestatus |grep -c "disabled"` -eq 0 ]; then
-	%{_sbindir}/semanage port -d -p tcp 8332
-	%{_sbindir}/semanage port -d -p tcp 8333
-	%{_sbindir}/semanage port -d -p tcp 18332
-	%{_sbindir}/semanage port -d -p tcp 18333
-	%{_sbindir}/semanage port -d -p tcp 18443
-	%{_sbindir}/semanage port -d -p tcp 18444
+	%{_sbindir}/semanage port -d -p tcp 7932
+	%{_sbindir}/semanage port -d -p tcp 7933
+	%{_sbindir}/semanage port -d -p tcp 17932
+	%{_sbindir}/semanage port -d -p tcp 17933
+	%{_sbindir}/semanage port -d -p tcp 17443
+	%{_sbindir}/semanage port -d -p tcp 17444
 	for selinuxvariant in %{selinux_variants}; do
 		%{_sbindir}/semodule -s ${selinuxvariant} -r bitcoin &> /dev/null || :
 	done
@@ -428,6 +428,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Fri Jul 20 2018 Jon Layton <jonlaytonmail@gmail.com> - 0.12.0-3
+- Adjust ports for Bitcoin Private
+
 * Fri Feb 26 2016 Alice Wonder <buildmaster@librelamp.com> - 0.12.0-2
 - Rename Qt package from bitcoin to bitcoin-core
 - Make building of the Qt package optional
