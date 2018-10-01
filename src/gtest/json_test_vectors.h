@@ -1,3 +1,10 @@
+// Copyright (c) 2016 The Zcash developers
+// Distributed under the MIT software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
+#ifndef BITCOIN_GTEST_JSON_TEST_VECTORS_H
+#define BITCOIN_GTEST_JSON_TEST_VECTORS_H
+
 #include <gtest/gtest.h>
 
 #include <utilstrencodings.h>
@@ -49,3 +56,5 @@ void expect_test_vector(T& v, const U& expected)
     ASSERT_TRUE(memcmp(&*ss1.begin(), &*ss2.begin(), ss1.size()) == 0);
     #endif
 }
+
+#endif // BITCOIN_GTEST_JSON_TEST_VECTORS_H

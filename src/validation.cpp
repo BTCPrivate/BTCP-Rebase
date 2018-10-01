@@ -249,7 +249,7 @@ std::atomic_bool g_is_mempool_loaded{false};
 /** Constant stuff for coinbase transactions we create: */
 CScript COINBASE_FLAGS;
 
-const std::string strMessageMagic = "Bitcoin Signed Message:\n";
+const std::string strMessageMagic = "BitcoinPrivate Signed Message:\n";
 
 // Internal stuff
 namespace {
@@ -1187,13 +1187,24 @@ bool ReadRawBlockFromDisk(std::vector<uint8_t>& block, const CBlockIndex* pindex
 
 CAmount GetBlockSubsidy(int nHeight, const Consensus::Params& consensusParams)
 {
-    int halvings = nHeight / consensusParams.nSubsidyHalvingInterval;
+    CAmount nSubsidy = 12.5 * COIN;
+
+    int halvingInterval = consensusParams.nSubsidyHalvingInterval;
+    uint64_t forkStartHeight = Params().ForkStartHeight();
+    
+    if(isForkEnabled(nHeight, forkStartHeight)) {
+        halvingInterval >>= 2;
+    }
+
+    int halvings = nHeight / halvingInterval;
+    if(isForkEnabled(nHeight, forkStartHeight))
+        halvings += 2;
+
     // Force block reward to zero when right shift is undefined.
     if (halvings >= 64)
         return 0;
 
-    CAmount nSubsidy = 50 * COIN;
-    // Subsidy is cut in half every 210,000 blocks which will occur approximately every 4 years.
+    // Subsidy is cut in half every 840,000 blocks which will occur approximately every 4 years.
     nSubsidy >>= halvings;
     return nSubsidy;
 }

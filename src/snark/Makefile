@@ -147,7 +147,7 @@ else
 endif
 
 ifeq ($(MULTICORE),1)
-	CXXFLAGS += -DMULTICORE -fopenmp
+	CXXFLAGS += -DMULTICORE -Xpreprocessor -fopenmp -lomp -L/usr/local/opt/libomp/lib -I/usr/local/opt/libomp/include
 endif
 
 ifeq ($(CPPDEBUG),1)

@@ -7,7 +7,7 @@ define(_CLIENT_VERSION_BUILD, 0)
 define(_CLIENT_VERSION_IS_RELEASE, false)
 define(_COPYRIGHT_YEAR, 2018)
 define(_COPYRIGHT_HOLDERS,[The %s developers])
-define(_COPYRIGHT_HOLDERS_SUBSTITUTION,[[Bitcoin Core]])
+define(_COPYRIGHT_HOLDERS_SUBSTITUTION,[[Bitcoin Core, Zcash and Bitcoin Private]])
 define(_ZC_BUILD_VAL, m4_if(m4_eval(_CLIENT_VERSION_BUILD < 25), 1, m4_incr(_CLIENT_VERSION_BUILD), m4_eval(_CLIENT_VERSION_BUILD < 50), 1, m4_eval(_CLIENT_VERSION_BUILD - 24), m4_eval(_CLIENT_VERSION_BUILD == 50), 1, , m4_eval(_CLIENT_VERSION_BUILD - 50)))
 AC_INIT([Bitcoin Core],[_CLIENT_VERSION_MAJOR._CLIENT_VERSION_MINOR._CLIENT_VERSION_REVISION],[https://github.com/bitcoin/bitcoin/issues],[bitcoin],[https://bitcoincore.org/])
 AC_CONFIG_SRCDIR([src/validation.cpp])
@@ -197,6 +197,17 @@ AC_ARG_ENABLE([asm],
 
 if test "x$use_asm" = xyes; then
   AC_DEFINE(USE_ASM, 1, [Define this symbol to build in assembly routines])
+fi
+
+dnl Temporary flag to get compilation on Mac working without interrupting Linux values
+AC_ARG_ENABLE([mac-build-script],
+  [AS_HELP_STRING([--mac-build-script],
+  [Enable mac-specific compilation values (default is no)])],
+  [mac_build_script=$enableval],
+  [mac_build_script=no])
+AM_CONDITIONAL([MAC_BUILD_SCRIPT],[test x$mac_build_script = xyes])
+if test "x$mac_build_script" = xyes; then
+  AC_DEFINE(MAC_BUILD_SCRIPT, 1, [Define this symbol to use mac-specific build values])
 fi
 
 AC_ARG_WITH([system-univalue],

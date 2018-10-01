@@ -1,9 +1,9 @@
-// Copyright (c) 2018      The Bitcoin Private developers
+// Copyright (c) 2018 The Bitcoin Private developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef BTCP_FORK_H
-#define BTCP_FORK_H
+#ifndef BITCOIN_FORK_H
+#define BITCOIN_FORK_H
 
 #include <consensus/validation.h>
 #include <primitives/block.h>
@@ -27,8 +27,8 @@ inline bool isForkEnabled(int nHeight, int forkStartHeight)
 }
 
 bool ContextualCheckBlockFork(const CBlock& block, CValidationState& state,
-                              const CChainParams& chainparams, const CBlockIndex * pindex);
+                              const CChainParams& chainparams, const CBlockIndex* pindex);
 
 std::string GetUTXOFileName(int);
 
-#endif
+#endif // BITCOIN_FORK_H

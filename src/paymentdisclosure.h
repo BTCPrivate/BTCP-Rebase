@@ -2,8 +2,8 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef ZCASH_PAYMENTDISCLOSURE_H
-#define ZCASH_PAYMENTDISCLOSURE_H
+#ifndef BITCOIN_PAYMENTDISCLOSURE_H
+#define BITCOIN_PAYMENTDISCLOSURE_H
 
 #include <uint256.h>
 #include <clientversion.h>
@@ -145,4 +145,4 @@ struct PaymentDisclosure {
 typedef std::pair<PaymentDisclosureKey, PaymentDisclosureInfo> PaymentDisclosureKeyInfo;
 
 
-#endif // ZCASH_PAYMENTDISCLOSURE_H
+#endif // BITCOIN_PAYMENTDISCLOSURE_H

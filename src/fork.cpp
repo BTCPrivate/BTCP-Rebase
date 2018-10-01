@@ -23,7 +23,7 @@ std::string GetUTXOFileName(int nHeight, const CChainParams& chainparams)
     boost::filesystem::path utxo_path(GetDataDir() / "utxo_snapshot");
     if (utxo_path.empty() || !utxo_path.has_filename())
     {
-        LogPrintf("GetUTXOFileName(): UTXO path is not specified, add utxo-path=<path-to-utxop-files> to your btcprivate.conf and restart");
+        LogPrintf("GetUTXOFileName(): UTXO path is not specified, add utxo-path=<path-to-utxo-files> to your bitcoin.conf and restart\n");
         return "";
     }
 
@@ -35,7 +35,7 @@ std::string GetUTXOFileName(int nHeight, const CChainParams& chainparams)
     return utxo_file.generic_string();
 }
 
-inline uint64_t bytes2uint64(char *array)
+inline uint64_t bytes2uint64(char* array)
 {
     uint64_t x =
         static_cast<uint64_t>(array[0])       & 0x00000000000000ff |
@@ -50,11 +50,11 @@ inline uint64_t bytes2uint64(char *array)
 }
 
 bool ContextualCheckBlockFork(const CBlock& block, CValidationState& state,
-                              const CChainParams& chainparams, const CBlockIndex * pindexprev)
+                              const CChainParams& chainparams, const CBlockIndex* pindexprev)
 {
     bool fExpensiveChecks = true;
     if (fCheckpointsEnabled) {
-        CBlockIndex * pindexLastCheckpoint = Checkpoints::GetLastCheckpoint(chainparams.Checkpoints());
+        CBlockIndex* pindexLastCheckpoint = Checkpoints::GetLastCheckpoint(chainparams.Checkpoints());
         if (pindexLastCheckpoint && pindexLastCheckpoint->GetAncestor(pindexprev->nHeight) == pindexprev) {
             // This block is an ancestor of a checkpoint: disable script checks
             fExpensiveChecks = false;
@@ -63,7 +63,7 @@ bool ContextualCheckBlockFork(const CBlock& block, CValidationState& state,
 
     int nHeight = pindexprev->nHeight + 1;
     if (fExpensiveChecks && isForkBlock(nHeight, chainparams.ForkStartHeight(), chainparams.ForkHeightRange())) {
-        //if block is in forking region validate it agains file records
+        // If block is in forking region, validate it against file records
 
         std::string utxo_file_path = GetUTXOFileName(nHeight, chainparams);
         std::ifstream if_utxo(utxo_file_path, std::ios::binary | std::ios::in);
@@ -71,7 +71,7 @@ bool ContextualCheckBlockFork(const CBlock& block, CValidationState& state,
             LogPrintf("AcceptBlock(): FORK Block - Validating block - %u / %s  with UTXO file - %s\n",
                       nHeight, block.GetHash().ToString(), utxo_file_path);
 
-            std::vector<std::pair<uint64_t, CScript> > txFromFile;
+            std::vector<std::pair<uint64_t, CScript>> txFromFile;
             txFromFile.reserve(FORK_CB_PER_BLOCK);
             int recs = 0;
 
@@ -123,7 +123,7 @@ bool ContextualCheckBlockFork(const CBlock& block, CValidationState& state,
 
             int txid = 0;
             typedef boost::tuple<std::pair<uint64_t, CScript>&, const CTransaction&> fork_cmp_tuple;
-            for(int i = 0; i < recs; i++) {
+            for (int i = 0; i < recs; i++) {
                 std::pair<uint64_t, CScript>& rec = txFromFile[i];
                 const CTransaction& tx = *block.vtx[i];
 

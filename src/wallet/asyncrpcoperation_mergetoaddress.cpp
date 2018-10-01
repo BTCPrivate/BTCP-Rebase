@@ -122,14 +122,6 @@ void AsyncRPCOperation_mergetoaddress::main()
 
     bool success = false;
 
-#ifdef ENABLE_MINING
-#ifdef ENABLE_WALLET
-    //GenerateBitcoins(false, NULL, 0);
-#else
-    //GenerateBitcoins(false, 0);
-#endif
-#endif
-
     try {
         success = main_impl();
     } catch (const UniValue& objError) {
@@ -151,14 +143,6 @@ void AsyncRPCOperation_mergetoaddress::main()
         set_error_message("unknown error");
     }
 
-#ifdef ENABLE_MINING
-#ifdef ENABLE_WALLET
-    //GenerateBitcoins(gArgs.GetBoolArg("-gen", false), pwalletMain, gArgs.GetArg("-genproclimit", 1));
-#else
-    //GenerateBitcoins(gArgs.GetBoolArg("-gen", false), gArgs.GetArg("-genproclimit", 1));
-#endif
-#endif
-
     stop_execution_clock();
 
     if (success) {
@@ -173,7 +157,7 @@ void AsyncRPCOperation_mergetoaddress::main()
     } else {
         s += strprintf(", error=%s)\n", getErrorMessage());
     }
-    LogPrintf("%s", s);
+    LogPrintf("%s\n", s);
 
     unlock_utxos(); // clean up
     unlock_notes(); // clean up

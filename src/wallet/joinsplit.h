@@ -138,4 +138,4 @@ struct CUnspentNotePlaintextEntry {
     int nHeight;
 };
 
-#endif
+#endif // BITCOIN_WALLET_JOINSPLIT_H

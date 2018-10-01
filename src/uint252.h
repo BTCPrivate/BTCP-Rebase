@@ -1,5 +1,10 @@
-#ifndef UINT252_H
-#define UINT252_H
+// Copyright (c) 2009-2010 Satoshi Nakamoto
+// Copyright (c) 2009-2014 The Bitcoin Core developers
+// Distributed under the MIT software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
+#ifndef BITCOIN_UINT252_H
+#define BITCOIN_UINT252_H
 
 #include <vector>
 #include <uint256.h>
@@ -47,4 +52,4 @@ public:
     friend inline bool operator==(const uint252& a, const uint252& b) { return a.contents == b.contents; }
 };
 
-#endif
+#endif // BITCOIN_UINT252_H

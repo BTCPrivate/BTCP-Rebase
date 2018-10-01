@@ -1,5 +1,6 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
 // Copyright (c) 2009-2014 The Bitcoin Core developers
+// Copyright (c) 2016-2017 The Zcash Developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -54,4 +55,4 @@ public:
     CZCSpendingKey(const libzcash::SpendingKey& addr) { Set(addr); }
 };
 
-#endif
+#endif // BITCOIN_ZKADDR_H

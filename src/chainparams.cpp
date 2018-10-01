@@ -160,7 +160,7 @@ public:
         // guarantees the first 2 characters, when base58 encoded, are "SK"
         base58Prefixes[ZCSPENDING_KEY]     = {0xAB,0x36};
 
-        bech32_hrp = "btcp";
+        bech32_hrp = "btcp"; // SLIP-0173
 
         vFixedSeeds = std::vector<SeedSpec6>(pnSeed6_main, pnSeed6_main + ARRAYLEN(pnSeed6_main));
 
@@ -202,7 +202,7 @@ public:
 };
 
 /**
- * Testnet (v3)
+ * Testnet
  */
 class CTestNetParams : public CChainParams {
 public:
@@ -276,7 +276,7 @@ public:
         // guarantees the first 2 characters, when base58 encoded, are "ST"
         base58Prefixes[ZCSPENDING_KEY]     = {0xAC,0x08};
 
-        bech32_hrp = "tbtcp";
+        bech32_hrp = "tbtcp"; // SLIP-0173
 
         vFixedSeeds = std::vector<SeedSpec6>(pnSeed6_main, pnSeed6_main + ARRAYLEN(pnSeed6_test));
 
@@ -351,12 +351,12 @@ public:
         pchMessageStart[2] = 0x3f;
         pchMessageStart[3] = 0x5f;
 
-        nDefaultPort = 17944;
+        nDefaultPort = 17444;
 
         nPruneAfterHeight = 1000;
 
-        nEquihashN = 200;
-        nEquihashK = 9;
+        nEquihashN = 48;
+        nEquihashK = 5;
 
         uint256 nNonce = uint256S("0000000000000000000000000000000000000000000000000000000000000009");
         genesis = CreateGenesisBlock(1482971059, nNonce, 0x200f0f0f, 4, 0, GenesisSolutions::REGTEST);
@@ -370,7 +370,7 @@ public:
         base58Prefixes[EXT_SECRET_KEY]     = {0x04, 0x35, 0x83, 0x94};
         base58Prefixes[ZCPAYMENT_ADDRRESS] = {0x16,0xC0};
         base58Prefixes[ZCSPENDING_KEY]     = {0xAC,0x08};
-        bech32_hrp = "regbtcp";
+        bech32_hrp = "regbtcp"; // SLIP-0173
 
         fDefaultConsistencyChecks = true;
         fRequireStandard = false;
@@ -392,8 +392,8 @@ public:
 
         m_fallback_fee_enabled = true;
 
-        nForkStartHeight = 10;
-        nForkHeightRange = 300;
+        nForkStartHeight = 0;
+        nForkHeightRange = 0;
     }
 };
 

@@ -30,7 +30,7 @@ unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHead
     int nHeight = pindexLast->nHeight + 1;
 
     arith_uint256 proofOfWorkLimit;
-    if(!isForkEnabled(nHeight, chainparams.ForkStartHeight()))
+    if (!isForkEnabled(nHeight, chainparams.ForkStartHeight()))
         proofOfWorkLimit = UintToArith256(params.prePowLimit);
     else
         proofOfWorkLimit = UintToArith256(params.powLimit);
@@ -46,15 +46,15 @@ unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHead
         return nProofOfWorkLimit;
 
     // right at fork
-    else if(is_fork && !was_fork)
+    else if (is_fork && !was_fork)
         return nProofOfWorkLimit;
 
     // right post fork
-    else if(!is_fork && was_fork)
+    else if (!is_fork && was_fork)
         return nProofOfWorkLimit;
 
     // difficulty bomb
-    else if(pindexLast->nHeight > params.nPowDifficultyBombHeight)
+    else if (pindexLast->nHeight > params.nPowDifficultyBombHeight)
         return nProofOfWorkBomb;
 
     // testnet only

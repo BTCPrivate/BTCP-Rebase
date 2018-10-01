@@ -99,10 +99,10 @@ jobs:
         - test/lint/git-subtree-check.sh src/secp256k1
         - test/lint/git-subtree-check.sh src/univalue
         - test/lint/git-subtree-check.sh src/leveldb
-        - test/lint/check-doc.py
-        - test/lint/check-rpc-mappings.py .
+#        - test/lint/check-doc.py
+#        - test/lint/check-rpc-mappings.py .
         - test/lint/lint-all.sh
-        - if [ "$TRAVIS_REPO_SLUG" = "bitcoin/bitcoin" -a "$TRAVIS_EVENT_TYPE" = "cron" ]; then
-              while read LINE; do travis_retry gpg --keyserver hkp://subset.pool.sks-keyservers.net --recv-keys $LINE; done < contrib/verify-commits/trusted-keys &&
-              travis_wait 30 contrib/verify-commits/verify-commits.sh;
-          fi
+#       - if [ "$TRAVIS_REPO_SLUG" = "bitcoin/bitcoin" -a "$TRAVIS_EVENT_TYPE" = "cron" ]; then
+#             while read LINE; do travis_retry gpg --keyserver hkp://subset.pool.sks-keyservers.net --recv-keys $LINE; done < contrib/verify-commits/trusted-keys &&
+#             travis_wait 30 contrib/verify-commits/verify-commits.sh;
+#         fi
