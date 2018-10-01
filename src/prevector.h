@@ -1,4 +1,4 @@
-// Copyright (c) 2015-2017 The Bitcoin Core developers
+// Copyright (c) 2015-2018 The Bitcoin Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -248,32 +248,32 @@ public:
 
     prevector() : _size(0), _union{{}} {}
 
-    explicit prevector(size_type n) : _size(0) {
+    explicit prevector(size_type n) : prevector() {
         resize(n);
     }
 
-    explicit prevector(size_type n, const T& val = T()) : _size(0) {
+    explicit prevector(size_type n, const T& val) : prevector() {
         change_capacity(n);
         _size += n;
         fill(item_ptr(0), n, val);
     }
 
     template<typename InputIterator>
-    prevector(InputIterator first, InputIterator last) : _size(0) {
+    prevector(InputIterator first, InputIterator last) : prevector() {
         size_type n = last - first;
         change_capacity(n);
         _size += n;
         fill(item_ptr(0), first, last);
     }
 
-    prevector(const prevector<N, T, Size, Diff>& other) : _size(0) {
+    prevector(const prevector<N, T, Size, Diff>& other) : prevector() {
         size_type n = other.size();
         change_capacity(n);
         _size += n;
         fill(item_ptr(0), other.begin(),  other.end());
     }
 
-    prevector(prevector<N, T, Size, Diff>&& other) : _size(0) {
+    prevector(prevector<N, T, Size, Diff>&& other) : prevector() {
         swap(other);
     }
 

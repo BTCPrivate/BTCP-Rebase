@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Copyright (c) 2016-2017 The Bitcoin Core developers
+# Copyright (c) 2016-2018 The Bitcoin Core developers
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 """Test Hierarchical Deterministic wallet function."""
@@ -21,13 +21,10 @@ class WalletHDTest(BitcoinTestFramework):
         self.num_nodes = 2
         self.extra_args = [[], ['-keypool=0']]
 
-    def run_test(self):
-        # Make sure can't switch off usehd after wallet creation
-        self.stop_node(1)
-        self.nodes[1].assert_start_raises_init_error(['-usehd=0'], "Error: Error loading : You can't disable HD on an already existing HD wallet")
-        self.start_node(1)
-        connect_nodes_bi(self.nodes, 0, 1)
+    def skip_test_if_missing_module(self):
+        self.skip_if_no_wallet()
 
+    def run_test(self):
         # Make sure we use hd, keep masterkeyid
         masterkeyid = self.nodes[1].getwalletinfo()['hdseedid']
         assert_equal(masterkeyid, self.nodes[1].getwalletinfo()['hdmasterkeyid'])

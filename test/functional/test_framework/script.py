@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Copyright (c) 2015-2017 The Bitcoin Core developers
+# Copyright (c) 2015-2018 The Bitcoin Core developers
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 """Functionality to build scripts, as well as SignatureHash().
@@ -7,7 +7,8 @@
 This file is modified from python-bitcoinlib.
 """
 
-from .mininode import CTransaction, CTxOut, sha256, hash256, uint256_from_str, ser_uint256, ser_string
+from .messages import CTransaction, CTxOut, sha256, hash256, uint256_from_str, ser_uint256, ser_string
+
 from binascii import hexlify
 import hashlib
 import struct
@@ -25,7 +26,7 @@ def hash160(s):
 _opcode_instances = []
 class CScriptOp(int):
     """A single script opcode"""
-    __slots__ = []
+    __slots__ = ()
 
     @staticmethod
     def encode_op_pushdata(d):
@@ -360,8 +361,11 @@ class CScriptTruncatedPushDataError(CScriptInvalidError):
         self.data = data
         super(CScriptTruncatedPushDataError, self).__init__(msg)
 
+
 # This is used, eg, for blockchain heights in coinbase scripts (bip34)
-class CScriptNum():
+class CScriptNum:
+    __slots__ = ("value",)
+
     def __init__(self, d=0):
         self.value = d
 
@@ -392,6 +396,8 @@ class CScript(bytes):
 
     iter(script) however does iterate by opcode.
     """
+    __slots__ = ()
+
     @classmethod
     def __coerce_instance(cls, other):
         # Coerce other into bytes

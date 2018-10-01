@@ -119,6 +119,8 @@ At this stage one should expect comments and review from other contributors. You
 can add more commits to your pull request by committing them locally and pushing
 to your fork until you have satisfied all feedback.
 
+Note: Code review is a burdensome but important part of the development process, and as such, certain types of pull requests are rejected. In general, if the **improvements** do not warrant the **review effort** required, the PR has a high chance of being rejected. It is up to the PR author to convince the reviewers that the changes warrant the review effort, and if reviewers are "Concept NAK'ing" the PR, the author may need to present arguments and/or do research backing their suggested changes.
+
 Squashing Commits
 ---------------------------
 If your pull request is accepted for merging, you may be asked by a maintainer
@@ -127,10 +129,10 @@ before it will be merged. The basic squashing workflow is shown below.
 
     git checkout your_branch_name
     git rebase -i HEAD~n
-    # n is normally the number of commits in the pull
-    # set commits from 'pick' to 'squash', save and quit
-    # on the next screen, edit/refine commit messages
-    # save and quit
+    # n is normally the number of commits in the pull request.
+    # Set commits (except the one in the first line) from 'pick' to 'squash', save and quit.
+    # On the next screen, edit/refine commit messages.
+    # Save and quit.
     git push -f # (force push to GitHub)
 
 If you have problems with squashing (or other workflows with `git`), you can

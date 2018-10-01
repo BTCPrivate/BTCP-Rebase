@@ -1,4 +1,4 @@
-// Copyright (c) 2011-2017 The Bitcoin Core developers
+// Copyright (c) 2011-2018 The Bitcoin Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -245,7 +245,7 @@ BOOST_AUTO_TEST_CASE(util_GetBoolArg)
     testArgs.ParseParameters(7, (char**)argv_test, error);
 
     // Each letter should be set.
-    for (char opt : "abcdef")
+    for (const char opt : "abcdef")
         BOOST_CHECK(testArgs.IsArgSet({'-', opt}) || !opt);
 
     // Nothing else should be in the map
@@ -394,7 +394,7 @@ BOOST_AUTO_TEST_CASE(util_ReadConfigStream)
                 && test_args.GetArg("-iii", "xxx") == "xxx"
                );
 
-    for (bool def : {false, true}) {
+    for (const bool def : {false, true}) {
         BOOST_CHECK(test_args.GetBoolArg("-a", def)
                      && test_args.GetBoolArg("-b", def)
                      && !test_args.GetBoolArg("-ccc", def)
@@ -806,6 +806,21 @@ BOOST_AUTO_TEST_CASE(gettime)
     BOOST_CHECK((GetTime() & ~0xFFFFFFFFLL) == 0);
 }
 
+BOOST_AUTO_TEST_CASE(test_IsDigit)
+{
+    BOOST_CHECK_EQUAL(IsDigit('0'), true);
+    BOOST_CHECK_EQUAL(IsDigit('1'), true);
+    BOOST_CHECK_EQUAL(IsDigit('8'), true);
+    BOOST_CHECK_EQUAL(IsDigit('9'), true);
+
+    BOOST_CHECK_EQUAL(IsDigit('0' - 1), false);
+    BOOST_CHECK_EQUAL(IsDigit('9' + 1), false);
+    BOOST_CHECK_EQUAL(IsDigit(0), false);
+    BOOST_CHECK_EQUAL(IsDigit(1), false);
+    BOOST_CHECK_EQUAL(IsDigit(8), false);
+    BOOST_CHECK_EQUAL(IsDigit(9), false);
+}
+
 BOOST_AUTO_TEST_CASE(test_ParseInt32)
 {
     int32_t n;
@@ -1100,7 +1115,7 @@ static void TestOtherProcess(fs::path dirname, std::string lockname, int fd)
 
 BOOST_AUTO_TEST_CASE(test_LockDirectory)
 {
-    fs::path dirname = fs::temp_directory_path() / fs::unique_path();
+    fs::path dirname = SetDataDir("test_LockDirectory") / fs::unique_path();
     const std::string lockname = ".lock";
 #ifndef WIN32
     // Revert SIGCHLD to default, otherwise boost.test will catch and fail on
@@ -1188,18 +1203,57 @@ BOOST_AUTO_TEST_CASE(test_LockDirectory)
 
 BOOST_AUTO_TEST_CASE(test_DirIsWritable)
 {
-    // Should be able to write to the system tmp dir.
-    fs::path tmpdirname = fs::temp_directory_path();
+    // Should be able to write to the data dir.
+    fs::path tmpdirname = SetDataDir("test_DirIsWritable");
     BOOST_CHECK_EQUAL(DirIsWritable(tmpdirname), true);
 
     // Should not be able to write to a non-existent dir.
-    tmpdirname = fs::temp_directory_path() / fs::unique_path();
+    tmpdirname = tmpdirname / fs::unique_path();
     BOOST_CHECK_EQUAL(DirIsWritable(tmpdirname), false);
 
     fs::create_directory(tmpdirname);
     // Should be able to write to it now.
     BOOST_CHECK_EQUAL(DirIsWritable(tmpdirname), true);
     fs::remove(tmpdirname);
+}
+
+BOOST_AUTO_TEST_CASE(test_ToLower)
+{
+    BOOST_CHECK_EQUAL(ToLower('@'), '@');
+    BOOST_CHECK_EQUAL(ToLower('A'), 'a');
+    BOOST_CHECK_EQUAL(ToLower('Z'), 'z');
+    BOOST_CHECK_EQUAL(ToLower('['), '[');
+    BOOST_CHECK_EQUAL(ToLower(0), 0);
+    BOOST_CHECK_EQUAL(ToLower(255), 255);
+
+    std::string testVector;
+    Downcase(testVector);
+    BOOST_CHECK_EQUAL(testVector, "");
+
+    testVector = "#HODL";
+    Downcase(testVector);
+    BOOST_CHECK_EQUAL(testVector, "#hodl");
+
+    testVector = "\x00\xfe\xff";
+    Downcase(testVector);
+    BOOST_CHECK_EQUAL(testVector, "\x00\xfe\xff");
+}
+
+BOOST_AUTO_TEST_CASE(test_ToUpper)
+{
+    BOOST_CHECK_EQUAL(ToUpper('`'), '`');
+    BOOST_CHECK_EQUAL(ToUpper('a'), 'A');
+    BOOST_CHECK_EQUAL(ToUpper('z'), 'Z');
+    BOOST_CHECK_EQUAL(ToUpper('{'), '{');
+    BOOST_CHECK_EQUAL(ToUpper(0), 0);
+    BOOST_CHECK_EQUAL(ToUpper(255), 255);
+}
+
+BOOST_AUTO_TEST_CASE(test_Capitalize)
+{
+    BOOST_CHECK_EQUAL(Capitalize(""), "");
+    BOOST_CHECK_EQUAL(Capitalize("bitcoin"), "Bitcoin");
+    BOOST_CHECK_EQUAL(Capitalize("\x00\xfe\xff"), "\x00\xfe\xff");
 }
 
 BOOST_AUTO_TEST_SUITE_END()

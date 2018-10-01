@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Copyright (c) 2016-2017 The Bitcoin Core developers
+# Copyright (c) 2016-2018 The Bitcoin Core developers
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 """Test compact blocks (BIP 152).
@@ -8,12 +8,15 @@ Version 1 compact blocks are pre-segwit (txids)
 Version 2 compact blocks are post-segwit (wtxids)
 """
 
-from test_framework.mininode import *
-from test_framework.test_framework import BitcoinTestFramework
-from test_framework.util import *
-from test_framework.blocktools import create_block, create_coinbase, add_witness_commitment
-from test_framework.script import CScript, OP_TRUE, OP_DROP
+from decimal import Decimal
+import random
 
+from test_framework.blocktools import create_block, create_coinbase, add_witness_commitment
+from test_framework.messages import BlockTransactions, BlockTransactionsRequest, calculate_shortid, CBlock, CBlockHeader, CInv, COutPoint, CTransaction, CTxIn, CTxInWitness, CTxOut, FromHex, HeaderAndShortIDs, msg_block, msg_blocktxn, msg_cmpctblock, msg_getblocktxn, msg_getdata, msg_getheaders, msg_headers, msg_inv, msg_sendcmpct, msg_sendheaders, msg_tx, msg_witness_block, msg_witness_blocktxn, MSG_WITNESS_FLAG, NODE_NETWORK, NODE_WITNESS, P2PHeaderAndShortIDs, PrefilledTransaction, ser_uint256, ToHex
+from test_framework.mininode import mininode_lock, P2PInterface
+from test_framework.script import CScript, OP_TRUE, OP_DROP
+from test_framework.test_framework import BitcoinTestFramework
+from test_framework.util import assert_equal, get_bip9_status, satoshi_round, sync_blocks, wait_until
 
 # TestP2PConn: A peer we use to send messages to bitcoind, and store responses.
 class TestP2PConn(P2PInterface):
@@ -87,7 +90,7 @@ class TestP2PConn(P2PInterface):
         This is used when we want to send a message into the node that we expect
         will get us disconnected, eg an invalid block."""
         self.send_message(message)
-        wait_until(lambda: self.state != "connected", timeout=timeout, lock=mininode_lock)
+        wait_until(lambda: not self.is_connected, timeout=timeout, lock=mininode_lock)
 
 class CompactBlocksTest(BitcoinTestFramework):
     def set_test_params(self):
@@ -98,6 +101,9 @@ class CompactBlocksTest(BitcoinTestFramework):
         # TODO: Rewrite this test to support SegWit being always active.
         self.extra_args = [["-vbparams=segwit:0:0"], ["-vbparams=segwit:0:999999999999", "-txindex", "-deprecatedrpc=addwitnessaddress"]]
         self.utxos = []
+
+    def skip_test_if_missing_module(self):
+        self.skip_if_no_wallet()
 
     def build_block_on_tip(self, node, segwit=False):
         height = node.getblockcount()
@@ -287,7 +293,7 @@ class CompactBlocksTest(BitcoinTestFramework):
         block_hash = int(node.generate(1)[0], 16)
 
         # Store the raw block in our internal format.
-        block = FromHex(CBlock(), node.getblock("%02x" % block_hash, False))
+        block = FromHex(CBlock(), node.getblock("%064x" % block_hash, False))
         for tx in block.vtx:
             tx.calc_sha256()
         block.rehash()
@@ -788,14 +794,10 @@ class CompactBlocksTest(BitcoinTestFramework):
         assert_equal(int(node.getbestblockhash(), 16), block.sha256)
 
     def run_test(self):
-        # Setup the p2p connections and start up the network thread.
+        # Setup the p2p connections
         self.test_node = self.nodes[0].add_p2p_connection(TestP2PConn())
-        self.segwit_node = self.nodes[1].add_p2p_connection(TestP2PConn(), services=NODE_NETWORK|NODE_WITNESS)
+        self.segwit_node = self.nodes[1].add_p2p_connection(TestP2PConn(), services=NODE_NETWORK | NODE_WITNESS)
         self.old_node = self.nodes[1].add_p2p_connection(TestP2PConn(), services=NODE_NETWORK)
-
-        network_thread_start()
-
-        self.test_node.wait_for_verack()
 
         # We will need UTXOs to construct transactions in later tests.
         self.make_utxos()

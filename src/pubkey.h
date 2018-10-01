@@ -1,5 +1,5 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
-// Copyright (c) 2009-2017 The Bitcoin Core developers
+// Copyright (c) 2009-2018 The Bitcoin Core developers
 // Copyright (c) 2017 The Zcash developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
@@ -107,6 +107,7 @@ public:
 
     //! Simple read-only vector-like interface to the pubkey data.
     unsigned int size() const { return GetLen(vch[0]); }
+    const unsigned char* data() const { return vch; }
     const unsigned char* begin() const { return vch; }
     const unsigned char* end() const { return vch + size(); }
     const unsigned char& operator[](unsigned int pos) const { return vch[pos]; }

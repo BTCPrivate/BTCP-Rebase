@@ -1,4 +1,4 @@
-// Copyright (c) 2012-2017 The Bitcoin Core developers
+// Copyright (c) 2012-2018 The Bitcoin Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -35,17 +35,6 @@ CBloomFilter::CBloomFilter(const unsigned int nElements, const double nFPRate, c
     nHashFuncs(std::min((unsigned int)(vData.size() * 8 / nElements * LN2), MAX_HASH_FUNCS)),
     nTweak(nTweakIn),
     nFlags(nFlagsIn)
-{
-}
-
-// Private constructor used by CRollingBloomFilter
-CBloomFilter::CBloomFilter(const unsigned int nElements, const double nFPRate, const unsigned int nTweakIn) :
-    vData((unsigned int)(-1  / LN2SQUARED * nElements * log(nFPRate)) / 8),
-    isFull(false),
-    isEmpty(true),
-    nHashFuncs((unsigned int)(vData.size() * 8 / nElements * LN2)),
-    nTweak(nTweakIn),
-    nFlags(BLOOM_UPDATE_NONE)
 {
 }
 
@@ -148,7 +137,7 @@ bool CBloomFilter::IsRelevantAndUpdate(const CTransaction& tx)
         const CTxOut& txout = tx.vout[i];
         // Match if the filter contains any arbitrary script data element in any scriptPubKey in tx
         // If this matches, also add the specific output that was matched.
-        // This means clients don't have to update the filter themselves when a new relevant tx 
+        // This means clients don't have to update the filter themselves when a new relevant tx
         // is discovered in order to find spending transactions, which avoids round-tripping and race conditions.
         CScript::const_iterator pc = txout.scriptPubKey.begin();
         std::vector<unsigned char> data;
@@ -164,11 +153,11 @@ bool CBloomFilter::IsRelevantAndUpdate(const CTransaction& tx)
                     insert(COutPoint(hash, i));
                 else if ((nFlags & BLOOM_UPDATE_MASK) == BLOOM_UPDATE_P2PUBKEY_ONLY)
                 {
-                    txnouttype type;
                     std::vector<std::vector<unsigned char> > vSolutions;
-                    if (Solver(txout.scriptPubKey, type, vSolutions) &&
-                            (type == TX_PUBKEY || type == TX_MULTISIG))
+                    txnouttype type = Solver(txout.scriptPubKey, vSolutions);
+                    if (type == TX_PUBKEY || type == TX_MULTISIG) {
                         insert(COutPoint(hash, i));
+                    }
                 }
                 break;
             }

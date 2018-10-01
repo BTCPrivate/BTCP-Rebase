@@ -64,6 +64,19 @@ We endeavor a complete refactoring of Bitcoin Private to allow for more facile i
 
 Learn more about the rebase at https://btcprivate.org/roadmap.
 
+What is Bitcoin?
+----------------
+
+Bitcoin is an experimental digital currency that enables instant payments to
+anyone, anywhere in the world. Bitcoin uses peer-to-peer technology to operate
+with no central authority: managing transactions and issuing money are carried
+out collectively by the network. Bitcoin Core is the name of open source
+software which enables the use of this currency.
+
+For more information, as well as an immediately useable, binary version of
+the Bitcoin Core software, see https://bitcoincore.org/en/download/, or read the
+[original whitepaper](https://bitcoincore.org/bitcoin.pdf).
+
 License
 -------
 
