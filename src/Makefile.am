@@ -378,9 +378,9 @@ pow/tromp/equi_miner.h \
 pow/tromp/equi.h \
 pow/tromp/osx_barrier.h
 
-crypto_libbitcoin_crypto_a_CPPFLAGS += \
+crypto_libbitcoin_crypto_base_a_CPPFLAGS += \
 -DEQUIHASH_TROMP_ATOMIC
-crypto_libbitcoin_crypto_a_SOURCES += \
+crypto_libbitcoin_crypto_base_a_SOURCES += \
 ${EQUIHASH_TROMP_SOURCES}
 endif
 
