@@ -15,7 +15,7 @@ BOOST_AUTO_TEST_SUITE(txindex_tests)
 
 BOOST_FIXTURE_TEST_CASE(txindex_initial_sync, TestChain100Setup)
 {
-    TxIndex txindex(MakeUnique<TxIndexDB>(1 << 20, true));
+    TxIndex txindex(1 << 20, true);
 
     CTransactionRef tx_disk;
     uint256 block_hash;
@@ -61,6 +61,8 @@ BOOST_FIXTURE_TEST_CASE(txindex_initial_sync, TestChain100Setup)
             BOOST_ERROR("Read incorrect tx");
         }
     }
+
+    txindex.Stop(); // Stop thread before calling destructor
 }
 
 BOOST_AUTO_TEST_SUITE_END()

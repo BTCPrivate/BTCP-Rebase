@@ -2,7 +2,7 @@
 #
 # linearize-hashes.py:  List blocks in a linear, no-fork version of the chain.
 #
-# Copyright (c) 2013-2017 The Bitcoin Core developers
+# Copyright (c) 2013-2018 The Bitcoin Core developers
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 #
@@ -96,7 +96,7 @@ def get_block_hashes(settings, max_blocks_per_call=10000):
 
 def get_rpc_cookie():
     # Open the cookie file
-    with open(os.path.join(os.path.expanduser(settings['datadir']), '.cookie'), 'r') as f:
+    with open(os.path.join(os.path.expanduser(settings['datadir']), '.cookie'), 'r', encoding="ascii") as f:
         combined = f.readline()
         combined_split = combined.split(":")
         settings['rpcuser'] = combined_split[0]
@@ -107,7 +107,7 @@ if __name__ == '__main__':
         print("Usage: linearize-hashes.py CONFIG-FILE")
         sys.exit(1)
 
-    f = open(sys.argv[1])
+    f = open(sys.argv[1], encoding="utf8")
     for line in f:
         # skip comment lines
         m = re.search('^\s*#', line)
