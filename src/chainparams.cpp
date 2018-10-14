@@ -242,10 +242,10 @@ public:
         consensus.vDeployments[Consensus::DEPLOYMENT_CSV].nTimeout   = 1535587200; // 2018-08-30
         static_assert(Consensus::DEPLOYMENT_SEGWIT == Consensus::DEPLOYMENT_CSV, "segwit and csv deployed together");
 
-        pchMessageStart[0] = 0xf6;
-        pchMessageStart[1] = 0x1b;
-        pchMessageStart[2] = 0xf6;
-        pchMessageStart[3] = 0xd6;
+        pchMessageStart[0] = 0xf4;
+        pchMessageStart[1] = 0x1c;
+        pchMessageStart[2] = 0xf5;
+        pchMessageStart[3] = 0xd4;
 
         nDefaultPort = 17933;
 
