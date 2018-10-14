@@ -144,7 +144,7 @@ public:
         assert(genesis.hashMerkleRoot == uint256S("0x19612bcf00ea7611d315d7f43554fa983c6e8c30cba17e52c679e0e80abf7d42"));
         assert(consensus.hashGenesisBlock == uint256S("0x0007104ccda289427919efc39dc9e4d499804b7bebc22df55f8b834301260602"));
 
-        vSeeds.emplace_back("dnsseed.btcprivate.org");
+        // vSeeds.emplace_back("dnsseed.btcprivate.org");
 
         // guarantees the first 2 characters, when base58 encoded, are "b1"
         base58Prefixes[PUBKEY_ADDRESS]     = {0x13,0x25};
