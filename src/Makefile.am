@@ -334,18 +334,6 @@ if USE_ASM
 crypto_libbitcoin_crypto_a_SOURCES += crypto/sha256_sse4.cpp
 endif
 
-if ENABLE_MINING
-EQUIHASH_TROMP_SOURCES = \
-  pow/tromp/equi_miner.h \
-  pow/tromp/equi.h \
-  pow/tromp/osx_barrier.h
-
-crypto_libbitcoin_crypto_a_CPPFLAGS += \
-  -DEQUIHASH_TROMP_ATOMIC
-crypto_libbitcoin_crypto_a_SOURCES += \
-  ${EQUIHASH_TROMP_SOURCES}
-endif
-
 # consensus: shared between all executables that validate any consensus rules.
 libbitcoin_consensus_a_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES)
 libbitcoin_consensus_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)

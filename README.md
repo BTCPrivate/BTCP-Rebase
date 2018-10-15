@@ -15,6 +15,11 @@ Build Instructions
 -------
 
 #### Linux (>= Ubuntu 16.04):
+
+```
+sudo apt-get install build-essential libtool autotools-dev automake pkg-config libssl-dev libevent-dev bsdmainutils python3 libboost-system-dev libboost-filesystem-dev libboost-chrono-dev libboost-test-dev libboost-thread-dev
+```
+
 ```
 cd scripts
 ./build.sh
