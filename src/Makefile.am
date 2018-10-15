@@ -56,10 +56,10 @@ if HAVE_OPENMP
 LIBSNARK_CONFIG_FLAGS += MULTICORE=1
 endif
 
-$(LIBSNARK): $(wildcard snark/src/*)
+$(LIBSNARK): $(wildcard snark/libsnark/*)
 	$(AM_V_at) CXXFLAGS="$(LIBSNARK_CXXFLAGS)" $(MAKE) $(AM_MAKEFLAGS) -C snark/ DEPINST="$(LIBSNARK_DEPINST)" $(LIBSNARK_CONFIG_FLAGS) OPTFLAGS="-O2 -march=x86-64"
 
-libsnark-tests: $(wildcard snark/src/*)
+libsnark-tests: $(wildcard snark/libsnark/*)
 	$(AM_V_at) CXXFLAGS="$(LIBSNARK_CXXFLAGS)" $(MAKE) $(AM_MAKEFLAGS) -C snark/ check DEPINST="$(LIBSNARK_DEPINST)" $(LIBSNARK_CONFIG_FLAGS) OPTFLAGS="-O2 -march=x86-64"
 
 # Make is not made aware of per-object dependencies to avoid limiting building parallelization
