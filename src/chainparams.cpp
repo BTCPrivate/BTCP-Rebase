@@ -213,7 +213,7 @@ public:
         consensus.nSubsidyHalvingInterval = 840000;
 
         // P2SH, height in coinbase, CLTV and DERSIG all enforced from genesis
-        consensus.BIP34Height = 0;
+        consensus.BIP34Height = 17;
         consensus.BIP65Height = 0;
         consensus.BIP66Height = 0;
 
@@ -260,9 +260,11 @@ public:
         assert(genesis.hashMerkleRoot == uint256S("0x19612bcf00ea7611d315d7f43554fa983c6e8c30cba17e52c679e0e80abf7d42"));
         assert(consensus.hashGenesisBlock == uint256S("0x03e1c4bb705c871bf9bfda3e74b7f8f86bff267993c215a89d5795e3708e5e1f"));
 
+
         vSeeds.emplace_back("rebase-testnet1.btcprivate.co");
         vSeeds.emplace_back("rebase-testnet2.btcprivate.co");
         vSeeds.emplace_back("rebase-testnet3.btcprivate.co");
+
 
         // guarantees the first 2 characters, when base58 encoded, are "n1"
         base58Prefixes[PUBKEY_ADDRESS]     = {0x19,0x57};
@@ -319,7 +321,7 @@ public:
         consensus.nSubsidyHalvingInterval = 840000;
 
         // P2SH, height in coinbase, CLTV and DERSIG all enforced from genesis
-        consensus.BIP34Height = 0;
+        consensus.BIP34Height = 17;
         consensus.BIP65Height = 0;
         consensus.BIP66Height = 0;
 
