@@ -261,9 +261,7 @@ public:
         assert(consensus.hashGenesisBlock == uint256S("0x03e1c4bb705c871bf9bfda3e74b7f8f86bff267993c215a89d5795e3708e5e1f"));
 
 
-        vSeeds.emplace_back("rebase-testnet1.btcprivate.co");
-        vSeeds.emplace_back("rebase-testnet2.btcprivate.co");
-        vSeeds.emplace_back("rebase-testnet3.btcprivate.co");
+        vSeeds.emplace_back("rebase-testnet.btcprivate.co");
 
 
         // guarantees the first 2 characters, when base58 encoded, are "n1"
