@@ -245,7 +245,7 @@ endif
 dist_bin_SCRIPTS = scripts/fetch-zcash-params.sh
 dist_noinst_SCRIPTS = autogen.sh
 
-EXTRA_DIST = $(DIST_SHARE) test/functional/test_runner.py test/functional test/zcash $(DIST_CONTRIB) $(DIST_DOCS) $(WINDOWS_PACKAGING) $(OSX_PACKAGING) $(BIN_CHECKS)
+EXTRA_DIST = $(DIST_SHARE) test/functional/test_runner.py test/functional $(DIST_CONTRIB) $(DIST_DOCS) $(WINDOWS_PACKAGING) $(OSX_PACKAGING) $(BIN_CHECKS)
 
 EXTRA_DIST += \
     test/util/bitcoin-util-test.py \
