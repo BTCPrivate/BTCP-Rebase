@@ -141,10 +141,8 @@ public:
         uint256 nNonce = uint256S("000000000000000000000000000000000000000000000000000000000000021d");
         genesis = CreateGenesisBlock(1478403829, nNonce, 0x1f07ffff, 4, 0, GenesisSolutions::MAINNET);
         consensus.hashGenesisBlock = genesis.GetHash();
-        //assert(genesis.hashMerkleRoot == uint256S("0x19612bcf00ea7611d315d7f43554fa983c6e8c30cba17e52c679e0e80abf7d42"));
-        //assert(consensus.hashGenesisBlock == uint256S("0x0007104ccda289427919efc39dc9e4d499804b7bebc22df55f8b834301260602"));
-
-        assert(false); // Mainnet is not yet ready for production!
+        assert(genesis.hashMerkleRoot == uint256S("0x19612bcf00ea7611d315d7f43554fa983c6e8c30cba17e52c679e0e80abf7d42"));
+        assert(consensus.hashGenesisBlock == uint256S("0x0007104ccda289427919efc39dc9e4d499804b7bebc22df55f8b834301260602"));
 
         // vSeeds.emplace_back("dnsseed.btcprivate.org");
 

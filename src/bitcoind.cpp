@@ -104,6 +104,11 @@ static bool AppInit(int argc, char* argv[])
         }
         // Check for -testnet or -regtest parameter (Params() calls are only valid after this clause)
         try {
+            std::string strChainName = gArgs.GetChainName();
+            if (strChainName == CBaseChainParams::MAIN) {
+                fprintf(stderr, "Please use -testnet or -regtest for now; mainnet is not yet ready.\n");
+                return false;
+            }
             SelectParams(gArgs.GetChainName());
         } catch (const std::exception& e) {
             fprintf(stderr, "Error: %s\n", e.what());
