@@ -973,6 +973,46 @@ static UniValue estimaterawfee(const JSONRPCRequest& request)
     return result;
 }
 
+UniValue getblocksubsidy(const JSONRPCRequest& request)
+{
+    if (request.params.size() > 1)
+        throw std::runtime_error(
+            "getblocksubsidy height\n"
+            "\nReturns block subsidy reward, taking into account the mining slow start and the founders reward, of block at index provided.\n"
+            "\nArguments:\n"
+            "1. height         (numeric, optional) The block height.  If not provided, defaults to the current height of the chain.\n"
+            "\nResult:\n"
+            "{\n"
+            "  \"miner\" : x.xxx           (numeric) The mining reward amount in " + CURRENCY_UNIT + ".\n"
+            "  \"founders\" : x.xxx        (numeric) The founders reward amount in " + CURRENCY_UNIT + ".\n"
+            "}\n"
+            "\nExamples:\n"
+            + HelpExampleCli("getblocksubsidy", "1000")
+            + HelpExampleRpc("getblocksubsidy", "1000")
+        );
+
+    LOCK(cs_main);
+
+    int nHeight = (request.params.size() == 1) ? request.params[0].get_int() : chainActive.Height();
+    if (nHeight < 0)
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "Block height out of range");
+
+    CAmount nReward = GetBlockSubsidy(nHeight, Params().GetConsensus());
+    CAmount nFoundersReward = 0;
+    /*
+    int nLastFoundersRewardBlockHeight = 0;
+    if ((nHeight > 0) && (nHeight <= nLastFoundersRewardBlockHeight)) {
+        nFoundersReward = nReward/5;
+        nReward -= nFoundersReward;
+    }
+    */
+    UniValue result(UniValue::VOBJ);
+    result.pushKV("miner", ValueFromAmount(nReward));
+    result.pushKV("founders", ValueFromAmount(nFoundersReward));
+    return result;
+}
+
+
 static const CRPCCommand commands[] =
 { //  category              name                      actor (function)         argNames
   //  --------------------- ------------------------  -----------------------  ----------
@@ -982,6 +1022,7 @@ static const CRPCCommand commands[] =
     { "mining",             "getblocktemplate",       &getblocktemplate,       {"template_request"} },
     { "mining",             "submitblock",            &submitblock,            {"hexdata","dummy"} },
 
+    { "mining",             "getblocksubsidy",        &getblocksubsidy,        {"height"} },
 
     { "generating",         "generatetoaddress",      &generatetoaddress,      {"nblocks","address","maxtries"} },
 
