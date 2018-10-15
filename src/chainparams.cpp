@@ -213,7 +213,7 @@ public:
         consensus.nSubsidyHalvingInterval = 840000;
 
         // P2SH, height in coinbase, CLTV and DERSIG all enforced from genesis
-        consensus.BIP34Height = 0;
+        consensus.BIP34Height = 17;
         consensus.BIP65Height = 0;
         consensus.BIP66Height = 0;
 
@@ -318,7 +318,7 @@ public:
         consensus.nSubsidyHalvingInterval = 840000;
 
         // P2SH, height in coinbase, CLTV and DERSIG all enforced from genesis
-        consensus.BIP34Height = 0;
+        consensus.BIP34Height = 17;
         consensus.BIP65Height = 0;
         consensus.BIP66Height = 0;
 
