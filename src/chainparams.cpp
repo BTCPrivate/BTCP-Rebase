@@ -301,8 +301,8 @@ public:
 
         m_fallback_fee_enabled = true;
 
-        nForkStartHeight = 10;
-        nForkHeightRange = 300;
+        nForkStartHeight = 0;
+        nForkHeightRange = 0;
     }
 };
 
