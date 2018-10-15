@@ -212,6 +212,7 @@ BITCOIN_CORE_H = \
   wallet/walletdb.h \
   wallet/walletutil.h \
   wallet/coinselection.h \
+  wallet/joinsplit.h \
   warnings.h \
   zkaddr.h \
   zmq/zmqabstractnotifier.h \
