@@ -262,7 +262,11 @@ public:
 
 
         vSeeds.emplace_back("rebase-testnet.btcprivate.co");
-
+        vSeeds.emplace_back("testnode1.btcprivate.co");
+        vSeeds.emplace_back("testnode2.btcprivate.co");
+        vSeeds.emplace_back("testnode3.btcprivate.co");
+        vSeeds.emplace_back("testnode4.btcprivate.co");
+        vSeeds.emplace_back("testnode5.btcprivate.co");
 
         // guarantees the first 2 characters, when base58 encoded, are "n1"
         base58Prefixes[PUBKEY_ADDRESS]     = {0x19,0x57};
