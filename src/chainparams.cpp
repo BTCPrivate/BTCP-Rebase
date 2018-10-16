@@ -209,7 +209,7 @@ public:
     CTestNetParams() {
         strNetworkID = "test";
 
-        consensus.fCoinbaseMustBeProtected = true;
+        consensus.fCoinbaseMustBeProtected = false;
         consensus.nSubsidyHalvingInterval = 840000;
 
         // P2SH, height in coinbase, CLTV and DERSIG all enforced from genesis
@@ -242,10 +242,10 @@ public:
         consensus.vDeployments[Consensus::DEPLOYMENT_CSV].nTimeout   = 1535587200; // 2018-08-30
         static_assert(Consensus::DEPLOYMENT_SEGWIT == Consensus::DEPLOYMENT_CSV, "segwit and csv deployed together");
 
-        pchMessageStart[0] = 0xf4;
-        pchMessageStart[1] = 0x1c;
-        pchMessageStart[2] = 0xf5;
-        pchMessageStart[3] = 0xd4;
+        pchMessageStart[0] = 0xf3;
+        pchMessageStart[1] = 0x1e;
+        pchMessageStart[2] = 0xf6;
+        pchMessageStart[3] = 0xd3;
 
         nDefaultPort = 17933;
 
