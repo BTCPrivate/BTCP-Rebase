@@ -18,6 +18,8 @@ class UniValue;
  */
 double GetDifficulty(const CBlockIndex* blockindex = nullptr);
 
+double GetNetworkDifficulty(const CBlockIndex* blockindex = nullptr);
+
 /** Callback for when block tip changed. */
 void RPCNotifyBlockChange(bool ibd, const CBlockIndex *);
 

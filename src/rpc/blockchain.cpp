@@ -52,30 +52,47 @@ static CUpdatedBlock latestblock;
 /* Calculate the difficulty for a given block index,
  * or the block index of the given chain.
  */
-double GetDifficulty(const CChain& chain, const CBlockIndex* blockindex)
+double GetDifficultyINTERNAL(const CBlockIndex* blockindex, bool networkDifficulty)
 {
+    // Floating point number that is a multiple of the minimum difficulty,
+    // minimum difficulty = 1.0.
     if (blockindex == nullptr)
     {
-        if (chain.Tip() == nullptr)
+        if (chainActive.Tip() == nullptr)
             return 1.0;
         else
-            blockindex = chain.Tip();
+            blockindex = chainActive.Tip();
     }
 
-    int nShift = (blockindex->nBits >> 24) & 0xff;
-    double dDiff =
-        (double)0x0000ffff / (double)(blockindex->nBits & 0x00ffffff);
+    uint32_t bits;
+    if (networkDifficulty) {
+        bits = GetNextWorkRequired(blockindex, nullptr, Params().GetConsensus());
+    } else {
+        bits = blockindex->nBits;
+    }
 
-    while (nShift < 29)
+    // instead of using powLimit, network difficulty is calculated using a legacy powLimit value to maintain comparability with the network difficulty of other Equihash-based coins for mining profitability calculations.
+    uint32_t powLimitLegacy = UintToArith256(Params().GetConsensus().prePowLimit).GetCompact();
+    int nShift = (bits >> 24) & 0xff;
+    int nShiftAmount = (powLimitLegacy >> 24) & 0xff;
+
+    double dDiff =
+        (double)(powLimitLegacy & 0x00ffffff) /
+        (double)(bits & 0x00ffffff);
+
+    while (nShift < nShiftAmount)
     {
         dDiff *= 256.0;
         nShift++;
     }
-    while (nShift > 29)
+    while (nShift > nShiftAmount)
     {
         dDiff /= 256.0;
         nShift--;
     }
+
+    // for compatibility purposes, the floor of 1.0 is maintained.
+    if (dDiff < 1) dDiff = 1.0;
 
     return dDiff;
 }
@@ -83,6 +100,11 @@ double GetDifficulty(const CChain& chain, const CBlockIndex* blockindex)
 double GetDifficulty(const CBlockIndex* blockindex)
 {
     return GetDifficulty(chainActive, blockindex);
+}
+
+double GetNetworkDifficulty(const CBlockIndex* blockindex)
+{
+    return GetDifficultyINTERNAL(blockindex, true);
 }
 
 UniValue blockheaderToJSON(const CBlockIndex* blockindex)
@@ -1240,7 +1262,7 @@ UniValue getblockchaininfo(const JSONRPCRequest& request)
     obj.pushKV("blocks",                (int)chainActive.Height());
     obj.pushKV("headers",               pindexBestHeader ? pindexBestHeader->nHeight : -1);
     obj.pushKV("bestblockhash",         chainActive.Tip()->GetBlockHash().GetHex());
-    obj.pushKV("difficulty",            (double)GetDifficulty());
+    obj.pushKV("difficulty",            (double)GetNetworkDifficulty());
     obj.pushKV("mediantime",            (int64_t)chainActive.Tip()->GetMedianTimePast());
     obj.pushKV("verificationprogress",  GuessVerificationProgress(Params().TxData(), chainActive.Tip()));
     obj.pushKV("initialblockdownload",  IsInitialBlockDownload());
