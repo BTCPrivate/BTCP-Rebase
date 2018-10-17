@@ -369,9 +369,10 @@ public:
 
         UpdateVersionBitsParametersFromArgs(args);
 
-        genesis = CreateGenesisBlock(1296688602, 2, 0x207fffff, 1, 50 * COIN, GenesisSolutions::REGTEST);
+
+        uint256 nNonce = uint256S("0000000000000000000000000000000000000000000000000000000000000009");
+        genesis = CreateGenesisBlock(1482971059, nNonce, 0x200f0f0f, 4, 0, GenesisSolutions::REGTEST);
         consensus.hashGenesisBlock = genesis.GetHash();
-        assert(consensus.hashGenesisBlock == uint256S("0x0575f78ee8dc057deee78ef691876e3be29833aaee5e189bb0459c087451305a"));
 
         base58Prefixes[PUBKEY_ADDRESS]     = {0x19,0x57};
         base58Prefixes[SCRIPT_ADDRESS]     = {0x19,0xE0};

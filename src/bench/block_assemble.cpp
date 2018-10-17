@@ -40,10 +40,12 @@ static CTxIn MineBlock(const CScript& coinbase_scriptPubKey)
 {
     auto block = PrepareBlock(coinbase_scriptPubKey);
 
+    auto nRunningNonce = arith_uint256(block->nNonce.GetHex());
     while (!CheckProofOfWork(block->GetHash(), block->nBits, Params().GetConsensus())) {
-        ++block->nNonce;
-        assert(block->nNonce);
+        ++nRunningNonce;
+        assert(nRunningNonce > 0);
     }
+    block->nNonce = uint256S(nRunningNonce.GetHex());
 
     bool processed{ProcessNewBlock(Params(), block, true, nullptr)};
     assert(processed);
