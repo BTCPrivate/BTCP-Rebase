@@ -1,5 +1,5 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
-// Copyright (c) 2009-2017 The Bitcoin Core developers
+// Copyright (c) 2009-2018 The Bitcoin Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -7,6 +7,7 @@
 
 #include <tinyformat.h>
 
+#include <algorithm>
 #include <cstdlib>
 #include <cstring>
 #include <errno.h>
@@ -71,7 +72,7 @@ bool IsHexNumber(const std::string& str)
     if (str.size() > 2 && *str.begin() == '0' && *(str.begin()+1) == 'x') {
         starting_location = 2;
     }
-    for (auto c : str.substr(starting_location)) {
+    for (const char c : str.substr(starting_location)) {
         if (HexDigit(c) < 0) return false;
     }
     // Return false for empty string or "0x".
@@ -473,7 +474,7 @@ bool ParseFixedPoint(const std::string &val, int decimals, int64_t *amount_out)
             /* pass single 0 */
             ++ptr;
         } else if (val[ptr] >= '1' && val[ptr] <= '9') {
-            while (ptr < end && val[ptr] >= '0' && val[ptr] <= '9') {
+            while (ptr < end && IsDigit(val[ptr])) {
                 if (!ProcessMantissaDigit(val[ptr], mantissa, mantissa_tzeros))
                     return false; /* overflow */
                 ++ptr;
@@ -483,9 +484,9 @@ bool ParseFixedPoint(const std::string &val, int decimals, int64_t *amount_out)
     if (ptr < end && val[ptr] == '.')
     {
         ++ptr;
-        if (ptr < end && val[ptr] >= '0' && val[ptr] <= '9')
+        if (ptr < end && IsDigit(val[ptr]))
         {
-            while (ptr < end && val[ptr] >= '0' && val[ptr] <= '9') {
+            while (ptr < end && IsDigit(val[ptr])) {
                 if (!ProcessMantissaDigit(val[ptr], mantissa, mantissa_tzeros))
                     return false; /* overflow */
                 ++ptr;
@@ -502,8 +503,8 @@ bool ParseFixedPoint(const std::string &val, int decimals, int64_t *amount_out)
             exponent_sign = true;
             ++ptr;
         }
-        if (ptr < end && val[ptr] >= '0' && val[ptr] <= '9') {
-            while (ptr < end && val[ptr] >= '0' && val[ptr] <= '9') {
+        if (ptr < end && IsDigit(val[ptr])) {
+            while (ptr < end && IsDigit(val[ptr])) {
                 if (exponent > (UPPER_BOUND / 10LL))
                     return false; /* overflow */
                 exponent = exponent * 10 + val[ptr] - '0';
@@ -544,3 +545,55 @@ bool ParseFixedPoint(const std::string &val, int decimals, int64_t *amount_out)
     return true;
 }
 
+bool ParseHDKeypath(const std::string& keypath_str, std::vector<uint32_t>& keypath)
+{
+    std::stringstream ss(keypath_str);
+    std::string item;
+    bool first = true;
+    while (std::getline(ss, item, '/')) {
+        if (item.compare("m") == 0) {
+            if (first) {
+                first = false;
+                continue;
+            }
+            return false;
+        }
+        // Finds whether it is hardened
+        uint32_t path = 0;
+        size_t pos = item.find("'");
+        if (pos != std::string::npos) {
+            // The hardened tick can only be in the last index of the string
+            if (pos != item.size() - 1) {
+                return false;
+            }
+            path |= 0x80000000;
+            item = item.substr(0, item.size() - 1); // Drop the last character which is the hardened tick
+        }
+
+        // Ensure this is only numbers
+        if (item.find_first_not_of( "0123456789" ) != std::string::npos) {
+            return false;
+        }
+        uint32_t number;
+        if (!ParseUInt32(item, &number)) {
+            return false;
+        }
+        path |= number;
+
+        keypath.push_back(path);
+        first = false;
+    }
+    return true;
+}
+
+void Downcase(std::string& str)
+{
+    std::transform(str.begin(), str.end(), str.begin(), [](unsigned char c){return ToLower(c);});
+}
+
+std::string Capitalize(std::string str)
+{
+    if (str.empty()) return str;
+    str[0] = ToUpper(str.front());
+    return str;
+}

@@ -1,5 +1,5 @@
 // Copyright (c) 2010 Satoshi Nakamoto
-// Copyright (c) 2009-2017 The Bitcoin Core developers
+// Copyright (c) 2009-2018 The Bitcoin Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -11,8 +11,6 @@
 #include <consensus/validation.h>
 #include <core_io.h>
 #include <crypto/equihash.h>
-#include <init.h>
-#include <validation.h>
 #include <key_io.h>
 #include <miner.h>
 #include <net.h>
@@ -21,10 +19,13 @@
 #include <rpc/blockchain.h>
 #include <rpc/mining.h>
 #include <rpc/server.h>
+#include <shutdown.h>
 #include <txmempool.h>
 #include <util.h>
 #include <utilstrencodings.h>
+#include <validation.h>
 #include <validationinterface.h>
+#include <versionbitsinfo.h>
 #include <warnings.h>
 
 #include <memory>
@@ -253,7 +254,7 @@ static UniValue getmininginfo(const JSONRPCRequest& request)
     obj.pushKV("blocks",           (int)chainActive.Height());
     obj.pushKV("currentblockweight", (uint64_t)nLastBlockWeight);
     obj.pushKV("currentblocktx",   (uint64_t)nLastBlockTx);
-    obj.pushKV("difficulty",       (double)GetDifficulty());
+    obj.pushKV("difficulty",       (double)GetDifficulty(chainActive.Tip()));
     obj.pushKV("networkhashps",    getnetworkhashps(request));
     obj.pushKV("pooledtx",         (uint64_t)mempool.size());
     obj.pushKV("chain",            Params().NetworkIDString());
@@ -286,7 +287,7 @@ static UniValue prioritisetransaction(const JSONRPCRequest& request)
 
     LOCK(cs_main);
 
-    uint256 hash = ParseHashStr(request.params[0].get_str(), "txid");
+    uint256 hash(ParseHashV(request.params[0], "txid"));
     CAmount nAmount = request.params[2].get_int64();
 
     if (!(request.params[1].isNull() || request.params[1].get_real() == 0)) {
@@ -376,7 +377,6 @@ static UniValue getblocktemplate(const JSONRPCRequest& request)
             "         \"fee\": n,                    (numeric) difference in value between transaction inputs and outputs (in satoshis); for coinbase transactions, this is a negative Number of the total collected block fees (ie, not including the block subsidy); if key is not present, fee is unknown and clients MUST NOT assume there isn't one\n"
             "         \"sigops\" : n,                (numeric) total SigOps cost, as counted for purposes of block limits; if key is not present, sigop cost is unknown and clients MUST NOT assume it is zero\n"
             "         \"weight\" : n,                (numeric) total transaction weight, as counted for purposes of block limits\n"
-            "         \"required\" : true|false      (boolean) if provided and true, this transaction must be in the final block\n"
             "      }\n"
             "      ,...\n"
             "  ],\n"
@@ -495,7 +495,7 @@ static UniValue getblocktemplate(const JSONRPCRequest& request)
             // Format: <hashBestChain><nTransactionsUpdatedLast>
             std::string lpstr = lpval.get_str();
 
-            hashWatchedChain.SetHex(lpstr.substr(0, 64));
+            hashWatchedChain = ParseHashV(lpstr.substr(0, 64), "longpollid");
             nTransactionsUpdatedLastLP = atoi64(lpstr.substr(64));
         }
         else
@@ -510,7 +510,7 @@ static UniValue getblocktemplate(const JSONRPCRequest& request)
         {
             checktxtime = std::chrono::steady_clock::now() + std::chrono::minutes(1);
 
-            WaitableLock lock(g_best_block_mutex);
+            WAIT_LOCK(g_best_block_mutex, lock);
             while (g_best_block == hashWatchedChain && IsRPCRunning())
             {
                 if (g_best_block_cv.wait_until(lock, checktxtime) == std::cv_status::timeout)
@@ -764,7 +764,6 @@ static UniValue submitblock(const JSONRPCRequest& request)
     }
 
     uint256 hash = block.GetHash();
-    bool fBlockPresent = false;
     {
         LOCK(cs_main);
         const CBlockIndex* pindex = LookupBlockIndex(hash);
@@ -775,8 +774,6 @@ static UniValue submitblock(const JSONRPCRequest& request)
             if (pindex->nStatus & BLOCK_FAILED_MASK) {
                 return "duplicate-invalid";
             }
-            // Otherwise, we might only have the header - process the block before returning
-            fBlockPresent = true;
         }
     }
 
@@ -788,14 +785,12 @@ static UniValue submitblock(const JSONRPCRequest& request)
         }
     }
 
+    bool new_block;
     submitblock_StateCatcher sc(block.GetHash());
     RegisterValidationInterface(&sc);
-    bool fAccepted = ProcessNewBlock(Params(), blockptr, true, nullptr);
+    bool accepted = ProcessNewBlock(Params(), blockptr, /* fForceProcessing */ true, /* fNewBlock */ &new_block);
     UnregisterValidationInterface(&sc);
-    if (fBlockPresent) {
-        if (fAccepted && !sc.found) {
-            return "duplicate-inconclusive";
-        }
+    if (!new_block && accepted) {
         return "duplicate";
     }
     if (!sc.found) {
@@ -804,10 +799,40 @@ static UniValue submitblock(const JSONRPCRequest& request)
     return BIP22ValidationResult(sc.state);
 }
 
-static UniValue estimatefee(const JSONRPCRequest& request)
+static UniValue submitheader(const JSONRPCRequest& request)
 {
-    throw JSONRPCError(RPC_METHOD_DEPRECATED, "estimatefee was removed in v0.17.\n"
-        "Clients should use estimatesmartfee.");
+    if (request.fHelp || request.params.size() != 1) {
+        throw std::runtime_error(
+            "submitheader \"hexdata\"\n"
+            "\nDecode the given hexdata as a header and submit it as a candidate chain tip if valid."
+            "\nThrows when the header is invalid.\n"
+            "\nArguments\n"
+            "1. \"hexdata\"        (string, required) the hex-encoded block header data\n"
+            "\nResult:\n"
+            "None"
+            "\nExamples:\n" +
+            HelpExampleCli("submitheader", "\"aabbcc\"") +
+            HelpExampleRpc("submitheader", "\"aabbcc\""));
+    }
+
+    CBlockHeader h;
+    if (!DecodeHexBlockHeader(h, request.params[0].get_str())) {
+        throw JSONRPCError(RPC_DESERIALIZATION_ERROR, "Block header decode failed");
+    }
+    {
+        LOCK(cs_main);
+        if (!LookupBlockIndex(h.hashPrevBlock)) {
+            throw JSONRPCError(RPC_VERIFY_ERROR, "Must submit previous header (" + h.hashPrevBlock.GetHex() + ") first");
+        }
+    }
+
+    CValidationState state;
+    ProcessNewBlockHeaders({h}, state, Params(), /* ppindex */ nullptr, /* first_invalid */ nullptr);
+    if (state.IsValid()) return NullUniValue;
+    if (state.IsError()) {
+        throw JSONRPCError(RPC_VERIFY_ERROR, FormatStateMessage(state));
+    }
+    throw JSONRPCError(RPC_VERIFY_ERROR, state.GetRejectReason());
 }
 
 static UniValue estimatesmartfee(const JSONRPCRequest& request)
@@ -827,7 +852,7 @@ static UniValue estimatesmartfee(const JSONRPCRequest& request)
             "                   higher feerate and is more likely to be sufficient for the desired\n"
             "                   target, but is not as responsive to short term drops in the\n"
             "                   prevailing fee market.  Must be one of:\n"
-            "       \"UNSET\" (defaults to CONSERVATIVE)\n"
+            "       \"UNSET\"\n"
             "       \"ECONOMICAL\"\n"
             "       \"CONSERVATIVE\"\n"
             "\nResult:\n"
@@ -927,7 +952,7 @@ static UniValue estimaterawfee(const JSONRPCRequest& request)
 
     UniValue result(UniValue::VOBJ);
 
-    for (FeeEstimateHorizon horizon : {FeeEstimateHorizon::SHORT_HALFLIFE, FeeEstimateHorizon::MED_HALFLIFE, FeeEstimateHorizon::LONG_HALFLIFE}) {
+    for (const FeeEstimateHorizon horizon : {FeeEstimateHorizon::SHORT_HALFLIFE, FeeEstimateHorizon::MED_HALFLIFE, FeeEstimateHorizon::LONG_HALFLIFE}) {
         CFeeRate feeRate;
         EstimationResult buckets;
 
@@ -1013,6 +1038,7 @@ UniValue getblocksubsidy(const JSONRPCRequest& request)
 }
 
 
+// clang-format off
 static const CRPCCommand commands[] =
 { //  category              name                      actor (function)         argNames
   //  --------------------- ------------------------  -----------------------  ----------
@@ -1021,16 +1047,17 @@ static const CRPCCommand commands[] =
     { "mining",             "prioritisetransaction",  &prioritisetransaction,  {"txid","dummy","fee_delta"} },
     { "mining",             "getblocktemplate",       &getblocktemplate,       {"template_request"} },
     { "mining",             "submitblock",            &submitblock,            {"hexdata","dummy"} },
+    { "mining",             "submitheader",           &submitheader,           {"hexdata"} },
 
     { "mining",             "getblocksubsidy",        &getblocksubsidy,        {"height"} },
 
     { "generating",         "generatetoaddress",      &generatetoaddress,      {"nblocks","address","maxtries"} },
 
-    { "hidden",             "estimatefee",            &estimatefee,            {} },
     { "util",               "estimatesmartfee",       &estimatesmartfee,       {"conf_target", "estimate_mode"} },
 
     { "hidden",             "estimaterawfee",         &estimaterawfee,         {"conf_target", "threshold"} },
 };
+// clang-format on
 
 void RegisterMiningRPCCommands(CRPCTable &t)
 {

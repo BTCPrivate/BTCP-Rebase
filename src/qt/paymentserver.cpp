@@ -1,4 +1,4 @@
-// Copyright (c) 2011-2017 The Bitcoin Core developers
+// Copyright (c) 2011-2018 The Bitcoin Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -41,12 +41,7 @@
 #include <QSslSocket>
 #include <QStringList>
 #include <QTextDocument>
-
-#if QT_VERSION < 0x050000
-#include <QUrl>
-#else
 #include <QUrlQuery>
-#endif
 
 const int BITCOIN_IPC_CONNECT_TIMEOUT = 1000; // milliseconds
 const QString BITCOIN_IPC_PREFIX("bitcoin:");
@@ -100,11 +95,7 @@ static QList<QString> savedPaymentRequests;
 
 static void ReportInvalidCertificate(const QSslCertificate& cert)
 {
-#if QT_VERSION < 0x050000
-    qDebug() << QString("%1: Payment server found an invalid certificate: ").arg(__func__) << cert.serialNumber() << cert.subjectInfo(QSslCertificate::CommonName) << cert.subjectInfo(QSslCertificate::OrganizationalUnitName);
-#else
     qDebug() << QString("%1: Payment server found an invalid certificate: ").arg(__func__) << cert.serialNumber() << cert.subjectInfo(QSslCertificate::CommonName) << cert.subjectInfo(QSslCertificate::DistinguishedNameQualifier) << cert.subjectInfo(QSslCertificate::OrganizationalUnitName);
-#endif
 }
 
 //
@@ -157,13 +148,11 @@ void PaymentServer::LoadRootCAs(X509_STORE* _store)
             continue;
         }
 
-#if QT_VERSION >= 0x050000
         // Blacklisted certificate
         if (cert.isBlacklisted()) {
             ReportInvalidCertificate(cert);
             continue;
         }
-#endif
         QByteArray certData = cert.toDer();
         const unsigned char *data = (const unsigned char *)certData.data();
 
@@ -329,8 +318,8 @@ PaymentServer::PaymentServer(QObject* parent, bool startLocalServer) :
                 tr("Cannot start bitcoin: click-to-pay handler"));
         }
         else {
-            connect(uriServer, SIGNAL(newConnection()), this, SLOT(handleURIConnection()));
-            connect(this, SIGNAL(receivedPaymentACK(QString)), this, SLOT(handlePaymentACK(QString)));
+            connect(uriServer, &QLocalServer::newConnection, this, &PaymentServer::handleURIConnection);
+            connect(this, &PaymentServer::receivedPaymentACK, this, &PaymentServer::handlePaymentACK);
         }
     }
 }
@@ -380,10 +369,8 @@ void PaymentServer::initNetManager()
     else
         qDebug() << "PaymentServer::initNetManager: No active proxy server found.";
 
-    connect(netManager, SIGNAL(finished(QNetworkReply*)),
-            this, SLOT(netRequestFinished(QNetworkReply*)));
-    connect(netManager, SIGNAL(sslErrors(QNetworkReply*, const QList<QSslError> &)),
-            this, SLOT(reportSslErrors(QNetworkReply*, const QList<QSslError> &)));
+    connect(netManager, &QNetworkAccessManager::finished, this, &PaymentServer::netRequestFinished);
+    connect(netManager, &QNetworkAccessManager::sslErrors, this, &PaymentServer::reportSslErrors);
 }
 
 void PaymentServer::uiReady()
@@ -413,11 +400,7 @@ void PaymentServer::handleURIOrFile(const QString& s)
     }
     else if (s.startsWith(BITCOIN_IPC_PREFIX, Qt::CaseInsensitive)) // bitcoin: URI
     {
-#if QT_VERSION < 0x050000
-        QUrl uri(s);
-#else
         QUrlQuery uri((QUrl(s)));
-#endif
         if (uri.hasQueryItem("r")) // payment request URI
         {
             QByteArray temp;
@@ -485,8 +468,7 @@ void PaymentServer::handleURIConnection()
     while (clientConnection->bytesAvailable() < (int)sizeof(quint32))
         clientConnection->waitForReadyRead();
 
-    connect(clientConnection, SIGNAL(disconnected()),
-            clientConnection, SLOT(deleteLater()));
+    connect(clientConnection, &QLocalSocket::disconnected, clientConnection, &QLocalSocket::deleteLater);
 
     QDataStream in(clientConnection);
     in.setVersion(QDataStream::Qt_4_0);

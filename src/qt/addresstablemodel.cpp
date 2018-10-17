@@ -1,4 +1,4 @@
-// Copyright (c) 2011-2017 The Bitcoin Core developers
+// Copyright (c) 2011-2018 The Bitcoin Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -71,7 +71,7 @@ public:
     QList<AddressTableEntry> cachedAddressTable;
     AddressTableModel *parent;
 
-    AddressTablePriv(AddressTableModel *_parent):
+    explicit AddressTablePriv(AddressTableModel *_parent):
         parent(_parent) {}
 
     void refreshAddressTable(interfaces::Wallet& wallet)

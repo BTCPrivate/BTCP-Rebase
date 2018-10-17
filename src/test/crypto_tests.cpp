@@ -1,4 +1,4 @@
-// Copyright (c) 2014-2017 The Bitcoin Core developers
+// Copyright (c) 2014-2018 The Bitcoin Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -200,7 +200,7 @@ static void TestChaCha20(const std::string &hexkey, uint64_t nonce, uint64_t see
     BOOST_CHECK(out == outres);
 }
 
-static std::string LongTestString(void) {
+static std::string LongTestString() {
     std::string ret;
     for (int i=0; i<200000; i++) {
         ret += (unsigned char)(i);
@@ -543,6 +543,22 @@ BOOST_AUTO_TEST_CASE(countbits_tests)
                 BOOST_CHECK_EQUAL(CountBits(j), i);
             }
         }
+    }
+}
+
+BOOST_AUTO_TEST_CASE(sha256d64)
+{
+    for (int i = 0; i <= 32; ++i) {
+        unsigned char in[64 * 32];
+        unsigned char out1[32 * 32], out2[32 * 32];
+        for (int j = 0; j < 64 * i; ++j) {
+            in[j] = InsecureRandBits(8);
+        }
+        for (int j = 0; j < i; ++j) {
+            CHash256().Write(in + 64 * j, 64).Finalize(out1 + 32 * j);
+        }
+        SHA256D64(out2, in, i);
+        BOOST_CHECK(memcmp(out1, out2, 32 * i) == 0);
     }
 }
 

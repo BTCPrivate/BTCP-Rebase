@@ -1,5 +1,5 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
-// Copyright (c) 2009-2017 The Bitcoin Core developers
+// Copyright (c) 2009-2018 The Bitcoin Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -15,9 +15,6 @@
 class CScheduler;
 class CWallet;
 
-class WalletInitInterface;
-extern const WalletInitInterface& g_wallet_init_interface;
-
 namespace boost
 {
 class thread_group;
@@ -25,8 +22,6 @@ class thread_group;
 
 extern std::unique_ptr<ZCJoinSplit> pzcashParams;
 
-void StartShutdown();
-bool ShutdownRequested();
 /** Interrupt threads */
 void Interrupt();
 void Shutdown();
