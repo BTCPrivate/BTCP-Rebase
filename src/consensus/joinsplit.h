@@ -5,6 +5,9 @@
 #ifndef BITCOIN_CONSENSUS_JOINSPLIT_H
 #define BITCOIN_CONSENSUS_JOINSPLIT_H
 
-bool CheckTransactionJoinsplits(const CTransaction& tx, CValidationState &state);
+#include <primitives/transaction.h>
+#include <consensus/validation.h>
+
+bool CheckTransactionJoinSplits(const CTransaction& tx, CValidationState& state, unsigned int flags);
 
 #endif // BITCOIN_CONSENSUS_JOINSPLIT_H

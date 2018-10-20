@@ -150,6 +150,11 @@ bool WalletBatch::WriteMinVersion(int nVersion)
     return WriteIC(std::string("minversion"), nVersion);
 }
 
+ bool WalletBatch::WriteWitnessCacheSize(int64_t nWitnessCacheSize)
+ {
+    return WriteIC(std::string("witnesscachesize"), nWitnessCacheSize);
+ }
+
 bool WalletBatch::ReadAccount(const std::string& strAccount, CAccount& account)
 {
     account.SetNull();
@@ -510,8 +515,14 @@ ReadKeyValue(CWallet* pwallet, CDataStream& ssKey, CDataStream& ssValue,
                 strErr = "Error reading wallet database: SetHDChain failed";
                 return false;
             }
-        } else if (strType != "bestblock" && strType != "bestblock_nomerkle"){
+        }
+        else if (strType != "bestblock" && strType != "bestblock_nomerkle")
+        {
             wss.m_unknown_records++;
+        }
+        else if (strType == "witnesscachesize")
+        {
+            ssValue >> pwallet->nWitnessCacheSize;
         }
     } catch (...)
     {

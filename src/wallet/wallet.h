@@ -16,11 +16,14 @@
 #include <script/ismine.h>
 #include <script/sign.h>
 #include <util.h>
+#include <consensus/reorg.h>
+#include <consensus/consensus.h>
 #include <wallet/crypter.h>
 #include <wallet/coinselection.h>
 #include <wallet/joinsplit.h>
 #include <wallet/walletdb.h>
 #include <wallet/rpcwallet.h>
+#include <zcash/Address.hpp>
 
 #include <algorithm>
 #include <atomic>
@@ -61,6 +64,11 @@ static const unsigned int DEFAULT_TX_CONFIRM_TARGET = 6;
 static const bool DEFAULT_WALLET_RBF = false;
 static const bool DEFAULT_WALLETBROADCAST = true;
 static const bool DEFAULT_DISABLE_WALLET = false;
+
+//! Size of note witness cache
+//  Should be large enough that we can expect not to reorg beyond our cache
+//  unless there is some exceptional network disruption.
+static const unsigned int NOTE_WITNESS_CACHE_SIZE = MAX_REORG_LENGTH + 1;
 
 static const int64_t TIMESTAMP_MIN = 0;
 
@@ -319,6 +327,7 @@ public:
      *                         2014 (removed in commit 93a18a3)
      */
     mapValue_t mapValue;
+    mapNoteData_t mapNoteData;
     std::vector<std::pair<std::string, std::string> > vOrderForm;
     unsigned int fTimeReceivedIsTxTime;
     unsigned int nTimeReceived; //!< time received by this node
@@ -371,6 +380,7 @@ public:
     {
         pwallet = pwalletIn;
         mapValue.clear();
+        mapNoteData.clear();
         vOrderForm.clear();
         fTimeReceivedIsTxTime = false;
         nTimeReceived = 0;
@@ -404,6 +414,7 @@ public:
     {
         char fSpent = false;
         mapValue_t mapValueCopy = mapValue;
+        mapNoteData_t mapNoteDataCopy = mapNoteData;
 
         mapValueCopy["fromaccount"] = strFromAccount;
         WriteOrderPos(nOrderPos, mapValueCopy);
@@ -413,7 +424,7 @@ public:
 
         s << static_cast<const CMerkleTx&>(*this);
         std::vector<CMerkleTx> vUnused; //!< Used to be vtxPrev
-        s << vUnused << mapValueCopy << vOrderForm << fTimeReceivedIsTxTime << nTimeReceived << fFromMe << fSpent;
+        s << vUnused << mapValueCopy << mapNoteDataCopy << vOrderForm << fTimeReceivedIsTxTime << nTimeReceived << fFromMe << fSpent;
     }
 
     template<typename Stream>
@@ -424,7 +435,7 @@ public:
 
         s >> static_cast<CMerkleTx&>(*this);
         std::vector<CMerkleTx> vUnused; //!< Used to be vtxPrev
-        s >> vUnused >> mapValue >> vOrderForm >> fTimeReceivedIsTxTime >> nTimeReceived >> fFromMe >> fSpent;
+        s >> vUnused >> mapValue >> mapNoteData >> vOrderForm >> fTimeReceivedIsTxTime >> nTimeReceived >> fFromMe >> fSpent;
 
         strFromAccount = std::move(mapValue["fromaccount"]);
         ReadOrderPos(nOrderPos, mapValue);
@@ -455,6 +466,8 @@ public:
         pwallet = pwalletIn;
         MarkDirty();
     }
+
+    void SetNoteData(mapNoteData_t &noteData);
 
     //! filter decides which addresses will count towards the debit
     CAmount GetDebit(const isminefilter& filter) const;
@@ -576,6 +589,7 @@ public:
     std::string strOtherAccount;
     std::string strComment;
     mapValue_t mapValue;
+    mapNoteData_t mapNoteData;
     int64_t nOrderPos; //!< position in ordered transaction list
     uint64_t nEntryNo;
 
@@ -699,9 +713,25 @@ private:
      */
     typedef std::multimap<COutPoint, uint256> TxSpends;
     TxSpends mapTxSpends;
+
+    typedef std::multimap<uint256, uint256> TxNullifiers;
+    TxNullifiers mapTxNullifiers;
+
     void AddToSpends(const COutPoint& outpoint, const uint256& wtxid);
+    void AddToSpends(const uint256& nullifier, const uint256& wtxid);
     void AddToSpends(const uint256& wtxid);
 
+public:
+    /*
+     * Size of the incremental witness cache for the notes in our wallet.
+     * This will always be greater than or equal to the size of the largest
+     * incremental witness cache in any transaction in mapWallet.
+     */
+    int64_t nWitnessCacheSize;
+
+    void ClearNoteWitnessCache();
+
+private:
     /* Mark a transaction (and its in-wallet descendants) as conflicting with a particular block. */
     void MarkConflicted(const uint256& hashBlock, const uint256& hashTx);
 
@@ -790,6 +820,7 @@ public:
 
     // Map from Key ID to key metadata.
     std::map<CKeyID, CKeyMetadata> mapKeyMetadata;
+    std::map<libzcash::PaymentAddress, CKeyMetadata> mapZKeyMetadata;
 
     // Map from Script ID to key metadata (for watch-only keys).
     std::map<CScriptID, CKeyMetadata> m_script_metadata;
@@ -809,6 +840,56 @@ public:
         encrypted_batch = nullptr;
     }
 
+/**
+     * The reverse mapping of nullifiers to notes.
+     *
+     * The mapping cannot be updated while an encrypted wallet is locked,
+     * because we need the SpendingKey to create the nullifier (#1502). This has
+     * several implications for transactions added to the wallet while locked:
+     *
+     * - Parent transactions can't be marked dirty when a child transaction that
+     *   spends their output notes is updated.
+     *
+     *   - We currently don't cache any note values, so this is not a problem,
+     *     yet.
+     *
+     * - GetFilteredNotes can't filter out spent notes.
+     *
+     *   - Per the comment in CNoteData, we assume that if we don't have a
+     *     cached nullifier, the note is not spent.
+     *
+     * Another more problematic implication is that the wallet can fail to
+     * detect transactions on the blockchain that spend our notes. There are two
+     * possible cases in which this could happen:
+     *
+     * - We receive a note when the wallet is locked, and then spend it using a
+     *   different wallet client.
+     *
+     * - We spend from a PaymentAddress we control, then we export the
+     *   SpendingKey and import it into a new wallet, and reindex/rescan to find
+     *   the old transactions.
+     *
+     * The wallet will only miss "pure" spends - transactions that are only
+     * linked to us by the fact that they contain notes we spent. If it also
+     * sends notes to us, or interacts with our transparent addresses, we will
+     * detect the transaction and add it to the wallet (again without caching
+     * nullifiers for new notes). As by default JoinSplits send change back to
+     * the origin PaymentAddress, the wallet should rarely miss transactions.
+     *
+     * To work around these issues, whenever the wallet is unlocked, we scan all
+     * cached notes, and cache any missing nullifiers. Since the wallet must be
+     * unlocked in order to spend notes, this means that GetFilteredNotes will
+     * always behave correctly within that context (and any other uses will give
+     * correct responses afterwards), for the transactions that the wallet was
+     * able to detect. Any missing transactions can be rediscovered by:
+     *
+     * - Unlocking the wallet (to fill all nullifier caches).
+     *
+     * - Restarting the node with -reindex (which operates on a locked wallet
+     *   but with the now-cached nullifiers).
+     */
+    std::map<uint256, JSOutPoint> mapNullifiersToNotes;
+
     std::map<uint256, CWalletTx> mapWallet;
     std::list<CAccountingEntry> laccentries;
 
@@ -823,6 +904,7 @@ public:
     std::map<CTxDestination, CAddressBookData> mapAddressBook;
 
     std::set<COutPoint> setLockedCoins;
+    std::set<JSOutPoint> setLockedNotes;
 
     const CWalletTx* GetWalletTx(const uint256& hash) const;
 
@@ -860,6 +942,13 @@ public:
     void UnlockCoin(const COutPoint& output) EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
     void UnlockAllCoins() EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
     void ListLockedCoins(std::vector<COutPoint>& vOutpts) const EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
+
+    // Z
+    bool IsLockedNote(const JSOutPoint& outpt) const EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
+    void LockNote(const JSOutPoint& output) EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
+    void UnlockNote(const JSOutPoint& output) EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
+    void UnlockAllNotes() EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
+    std::vector<JSOutPoint> ListLockedNotes() EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
 
     /*
      * Rescan abort properties
@@ -919,6 +1008,12 @@ public:
     void GetKeyBirthTimes(std::map<CTxDestination, int64_t> &mapKeyBirth) const EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
     unsigned int ComputeTimeSmart(const CWalletTx& wtx) const;
 
+    //! Generates a new zaddr
+    libzcash::PaymentAddress GenerateNewZKey() EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
+    //! Adds spending key to the store, and saves it to disk
+    bool AddZKey(const libzcash::SpendingKey &key) EXCLUSIVE_LOCKS_REQUIRED(cs_wallet); // no override
+    bool AddZKeyWithDB(WalletBatch &batch, const libzcash::SpendingKey &key) EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
+
     /**
      * Increment the next transaction order id
      * @return next transaction order id
@@ -929,6 +1024,8 @@ public:
     bool GetLabelDestination(CTxDestination &dest, const std::string& label, bool bForceNew = false);
 
     void MarkDirty();
+    bool UpdateNullifierNoteMap();
+    void UpdateNullifierNoteMapWithTx(const CWalletTx& wtx);
     bool AddToWallet(const CWalletTx& wtxIn, bool fFlushOnClose=true);
     bool LoadToWallet(const CWalletTx& wtxIn);
     void TransactionAddedToMempool(const CTransactionRef& tx) override;
@@ -1043,6 +1140,13 @@ public:
     bool IsChange(const CTxOut& txout) const;
     CAmount GetChange(const CTxOut& txout) const;
     bool IsMine(const CTransaction& tx) const;
+    boost::optional<uint256> GetNoteNullifier(
+        const JSDescription& jsdesc,
+        const libzcash::PaymentAddress& address,
+        const ZCNoteDecryption& dec,
+        const uint256& hSig,
+        uint8_t n) const;
+    mapNoteData_t FindMyNotes(const CTransaction& tx) const;
     /** should probably be renamed to IsRelevantToMe */
     bool IsFromMe(const CTransaction& tx) const;
     CAmount GetDebit(const CTransaction& tx, const isminefilter& filter) const;

@@ -202,3 +202,48 @@ bool HaveKey(const CKeyStore& store, const CKey& key)
     key2.Set(key.begin(), key.end(), !key.IsCompressed());
     return store.HaveKey(key.GetPubKey().GetID()) || store.HaveKey(key2.GetPubKey().GetID());
 }
+
+// Z
+
+bool CBasicKeyStore::AddSpendingKey(const libzcash::SpendingKey &sk)
+{
+    LOCK(cs_SpendingKeyStore);
+    auto address = sk.address();
+    mapSpendingKeys[address] = sk;
+    mapNoteDecryptors.insert(std::make_pair(address, ZCNoteDecryption(sk.receiving_key())));
+    return true;
+}
+
+bool CBasicKeyStore::AddViewingKey(const libzcash::ViewingKey &vk)
+{
+    LOCK(cs_SpendingKeyStore);
+    auto address = vk.address();
+    mapViewingKeys[address] = vk;
+    mapNoteDecryptors.insert(std::make_pair(address, ZCNoteDecryption(vk.sk_enc)));
+    return true;
+}
+
+bool CBasicKeyStore::RemoveViewingKey(const libzcash::ViewingKey &vk)
+{
+    LOCK(cs_SpendingKeyStore);
+    mapViewingKeys.erase(vk.address());
+    return true;
+}
+
+bool CBasicKeyStore::HaveViewingKey(const libzcash::PaymentAddress &address) const
+{
+    LOCK(cs_SpendingKeyStore);
+    return mapViewingKeys.count(address) > 0;
+}
+
+bool CBasicKeyStore::GetViewingKey(const libzcash::PaymentAddress &address,
+                                   libzcash::ViewingKey &vkOut) const
+{
+    LOCK(cs_SpendingKeyStore);
+    ViewingKeyMap::const_iterator mi = mapViewingKeys.find(address);
+    if (mi != mapViewingKeys.end()) {
+        vkOut = mi->second;
+        return true;
+    }
+    return false;
+}
