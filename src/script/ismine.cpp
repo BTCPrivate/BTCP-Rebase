@@ -1,5 +1,5 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
-// Copyright (c) 2009-2017 The Bitcoin Core developers
+// Copyright (c) 2009-2018 The Bitcoin Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -23,9 +23,9 @@ namespace {
  */
 enum class IsMineSigVersion
 {
-    TOP = 0,        //! scriptPubKey execution
-    P2SH = 1,       //! P2SH redeemScript
-    WITNESS_V0 = 2  //! P2WSH witness script execution
+    TOP = 0,        //!< scriptPubKey execution
+    P2SH = 1,       //!< P2SH redeemScript
+    WITNESS_V0 = 2, //!< P2WSH witness script execution
 };
 
 /**
@@ -35,10 +35,10 @@ enum class IsMineSigVersion
  */
 enum class IsMineResult
 {
-    NO = 0,          //! Not ours
-    WATCH_ONLY = 1,  //! Included in watch-only balance
-    SPENDABLE = 2,   //! Included in all balances
-    INVALID = 3,     //! Not spendable by anyone
+    NO = 0,         //!< Not ours
+    WATCH_ONLY = 1, //!< Included in watch-only balance
+    SPENDABLE = 2,  //!< Included in all balances
+    INVALID = 3,    //!< Not spendable by anyone (uncompressed pubkey in segwit, P2SH inside P2SH or witness, witness inside witness)
 };
 
 bool PermitsUncompressed(IsMineSigVersion sigversion)
@@ -60,8 +60,7 @@ IsMineResult IsMineInner(const CKeyStore& keystore, const CScript& scriptPubKey,
     IsMineResult ret = IsMineResult::NO;
 
     std::vector<valtype> vSolutions;
-    txnouttype whichType;
-    Solver(scriptPubKey, whichType, vSolutions);
+    txnouttype whichType = Solver(scriptPubKey, vSolutions);
 
     CKeyID keyID;
     switch (whichType)
@@ -173,12 +172,10 @@ IsMineResult IsMineInner(const CKeyStore& keystore, const CScript& scriptPubKey,
 
 } // namespace
 
-isminetype IsMine(const CKeyStore& keystore, const CScript& scriptPubKey, bool& isInvalid)
+isminetype IsMine(const CKeyStore& keystore, const CScript& scriptPubKey)
 {
-    isInvalid = false;
     switch (IsMineInner(keystore, scriptPubKey, IsMineSigVersion::TOP)) {
     case IsMineResult::INVALID:
-        isInvalid = true;
     case IsMineResult::NO:
         return ISMINE_NO;
     case IsMineResult::WATCH_ONLY:
@@ -187,12 +184,6 @@ isminetype IsMine(const CKeyStore& keystore, const CScript& scriptPubKey, bool& 
         return ISMINE_SPENDABLE;
     }
     assert(false);
-}
-
-isminetype IsMine(const CKeyStore& keystore, const CScript& scriptPubKey)
-{
-    bool isInvalid = false;
-    return IsMine(keystore, scriptPubKey, isInvalid);
 }
 
 isminetype IsMine(const CKeyStore& keystore, const CTxDestination& dest)

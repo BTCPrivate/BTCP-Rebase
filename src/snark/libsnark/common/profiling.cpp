@@ -282,7 +282,8 @@ void leave_block(const std::string &msg, const bool indent)
     }
 
 #ifndef MULTICORE
-    assert(*(--block_names.end()) == msg);
+    --block_names.end();
+    assert(*(block_names.end()) == msg);
 #endif
     block_names.pop_back();
 

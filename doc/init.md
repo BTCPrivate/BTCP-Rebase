@@ -15,14 +15,14 @@ Service User
 
 All three Linux startup configurations assume the existence of a "bitcoin" user
 and group.  They must be created before attempting to use these scripts.
-The OS X configuration assumes bitcoind will be set up for the current user.
+The macOS configuration assumes bitcoind will be set up for the current user.
 
 Configuration
 ---------------------------------
 
 At a bare minimum, bitcoind requires that the rpcpassword setting be set
 when running as a daemon.  If the configuration file does not exist or this
-setting is not set, bitcoind will shutdown promptly after startup.
+setting is not set, bitcoind will shut down promptly after startup.
 
 This password does not have to be remembered or typed as it is mostly used
 as a fixed token that bitcoind and client programs read from the configuration
@@ -44,7 +44,7 @@ This allows for running bitcoind without having to do any manual configuration.
 relative to the data directory. `wallet` *only* supports relative paths.
 
 For an example configuration file that describes the configuration settings,
-see `contrib/debian/examples/bitcoin.conf`.
+see `share/examples/bitcoin.conf`.
 
 Paths
 ---------------------------------
@@ -65,7 +65,7 @@ reasons to make the configuration file and data directory only readable by the
 bitcoin user and group.  Access to bitcoin-cli and other bitcoind rpc clients
 can then be controlled by group membership.
 
-### Mac OS X
+### macOS
 
 Binary:              `/usr/local/bin/bitcoind`  
 Configuration file:  `~/Library/Application Support/Bitcoin/bitcoin.conf`  
@@ -111,7 +111,7 @@ Using this script, you can adjust the path and flags to the bitcoind program by
 setting the BITCOIND and FLAGS environment variables in the file
 /etc/sysconfig/bitcoind. You can also use the DAEMONOPTS environment variable here.
 
-### Mac OS X
+### macOS
 
 Copy org.bitcoin.bitcoind.plist into ~/Library/LaunchAgents. Load the launch agent by
 running `launchctl load ~/Library/LaunchAgents/org.bitcoin.bitcoind.plist`.
