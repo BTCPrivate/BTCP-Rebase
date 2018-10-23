@@ -21,7 +21,7 @@ static constexpr int NUM_GETBLOCKSTATS_PERCENTILES = 5;
  * @return A floating point number that is a multiple of the main net minimum
  * difficulty (4295032833 hashes).
  */
-double GetDifficulty(const CBlockIndex* blockindex);
+double GetDifficulty(const CBlockIndex* blockindex = nullptr);
 
 double GetNetworkDifficulty(const CBlockIndex* blockindex = nullptr);
 
