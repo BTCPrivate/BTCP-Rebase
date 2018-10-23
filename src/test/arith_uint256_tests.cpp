@@ -1,4 +1,4 @@
-// Copyright (c) 2011-2017 The Bitcoin Core developers
+// Copyright (c) 2011-2018 The Bitcoin Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -198,13 +198,6 @@ BOOST_AUTO_TEST_CASE( shifts ) { // "<<"  ">>"  "<<="  ">>="
 
 BOOST_AUTO_TEST_CASE( unaryOperators ) // !    ~    -
 {
-    BOOST_CHECK(!ZeroL);
-    BOOST_CHECK(!(!OneL));
-    for (unsigned int i = 0; i < 256; ++i)
-        BOOST_CHECK(!(!(OneL<<i)));
-    BOOST_CHECK(!(!R1L));
-    BOOST_CHECK(!(!MaxL));
-
     BOOST_CHECK(~ZeroL == MaxL);
 
     unsigned char TmpArray[32];

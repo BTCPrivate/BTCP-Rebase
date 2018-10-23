@@ -1,4 +1,4 @@
-// Copyright (c) 2015-2017 The Bitcoin Core developers
+// Copyright (c) 2015-2018 The Bitcoin Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -159,7 +159,7 @@ void SingleThreadedSchedulerClient::MaybeScheduleProcessQueue() {
 }
 
 void SingleThreadedSchedulerClient::ProcessQueue() {
-    std::function<void (void)> callback;
+    std::function<void ()> callback;
     {
         LOCK(m_cs_callbacks_pending);
         if (m_are_callbacks_running) return;
@@ -187,7 +187,7 @@ void SingleThreadedSchedulerClient::ProcessQueue() {
     callback();
 }
 
-void SingleThreadedSchedulerClient::AddToProcessQueue(std::function<void (void)> func) {
+void SingleThreadedSchedulerClient::AddToProcessQueue(std::function<void ()> func) {
     assert(m_pscheduler);
 
     {

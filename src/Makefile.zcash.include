@@ -1,6 +1,6 @@
 noinst_PROGRAMS += \
-  zcash/GenerateParams \
-  zcash/CreateJoinSplit
+  zcash/GenerateParams
+#  zcash/CreateJoinSplit
 
 # tool for generating our public parameters
 zcash_GenerateParams_SOURCES = zcash/GenerateParams.cpp
@@ -15,6 +15,7 @@ zcash_GenerateParams_LDADD = \
   $(LIBZCASH_LIBS)
 
 # tool for profiling the creation of joinsplits
+# TODO: util.h include + localization is currently causing this to fail build
 zcash_CreateJoinSplit_SOURCES = zcash/CreateJoinSplit.cpp
 zcash_CreateJoinSplit_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES)
 zcash_CreateJoinSplit_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
