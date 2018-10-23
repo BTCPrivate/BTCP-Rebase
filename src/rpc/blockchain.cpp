@@ -19,6 +19,7 @@
 #include <policy/feerate.h>
 #include <policy/policy.h>
 #include <policy/rbf.h>
+#include <pow.h>
 #include <primitives/transaction.h>
 #include <rpc/server.h>
 #include <script/descriptor.h>
@@ -71,7 +72,7 @@ double GetDifficultyINTERNAL(const CBlockIndex* blockindex, bool networkDifficul
 
     uint32_t bits;
     if (networkDifficulty) {
-        bits = GetNextWorkRequired(blockindex, nullptr, Params().GetConsensus());
+        bits = GetNextWorkRequired(blockindex, nullptr, Params());
     } else {
         bits = blockindex->nBits;
     }
@@ -104,7 +105,7 @@ double GetDifficultyINTERNAL(const CBlockIndex* blockindex, bool networkDifficul
 
 double GetDifficulty(const CBlockIndex* blockindex)
 {
-    return GetDifficulty(chainActive, blockindex);
+    return GetDifficultyINTERNAL(blockindex, false);
 }
 
 double GetNetworkDifficulty(const CBlockIndex* blockindex)
