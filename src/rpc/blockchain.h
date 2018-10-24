@@ -23,7 +23,7 @@ static constexpr int NUM_GETBLOCKSTATS_PERCENTILES = 5;
  */
 double GetDifficulty(const CBlockIndex* blockindex = nullptr);
 
-double GetNetworkDifficulty(const CBlockIndex* blockindex = nullptr);
+double GetNetworkDifficulty(const CBlockIndex* blockindex);
 
 /** Callback for when block tip changed. */
 void RPCNotifyBlockChange(bool ibd, const CBlockIndex *);

@@ -71,8 +71,9 @@ double GetDifficultyINTERNAL(const CBlockIndex* blockindex, bool networkDifficul
     }
 
     uint32_t bits;
+    auto tipblock = chainActive.Tip()->GetBlockHeader();
     if (networkDifficulty) {
-        bits = GetNextWorkRequired(blockindex, nullptr, Params());
+        bits = GetNextWorkRequired(blockindex, &tipblock, Params());
     } else {
         bits = blockindex->nBits;
     }
@@ -1281,7 +1282,7 @@ UniValue getblockchaininfo(const JSONRPCRequest& request)
     obj.pushKV("blocks",                (int)chainActive.Height());
     obj.pushKV("headers",               pindexBestHeader ? pindexBestHeader->nHeight : -1);
     obj.pushKV("bestblockhash",         chainActive.Tip()->GetBlockHash().GetHex());
-    obj.pushKV("difficulty",            (double)GetNetworkDifficulty());
+    obj.pushKV("difficulty",            (double)GetDifficulty(chainActive.Tip()));
     obj.pushKV("mediantime",            (int64_t)chainActive.Tip()->GetMedianTimePast());
     obj.pushKV("verificationprogress",  GuessVerificationProgress(Params().TxData(), chainActive.Tip()));
     obj.pushKV("initialblockdownload",  IsInitialBlockDownload());
