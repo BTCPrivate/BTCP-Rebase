@@ -284,7 +284,7 @@ public:
     typedef std::array<unsigned char, 64> joinsplit_sig_t;
 
     // Default transaction version.
-    static const int32_t CURRENT_VERSION=2;
+    static const int32_t CURRENT_VERSION=1;
 
     // Changing the default transaction version requires a two step process: first
     // adapting relay policy by bumping MAX_STANDARD_VERSION, and then later date
