@@ -101,6 +101,8 @@ eval "$CXX" --version
 as --version
 ld -v
 
+CPPFLAGS+="-lomp"
+
 HOST="$HOST" BUILD="$BUILD" "$MAKE" "$@" -C ./depends/ V=1
 ./autogen.sh
 CC="$CC" CXX="$CXX" ./configure --prefix="${PREFIX}" --host="$HOST" --build="$BUILD" "$HARDENING_ARG" "$LCOV_ARG" "$TEST_ARG" "$MINING_ARG" $CONFIGURE_FLAGS --enable-werror CXXFLAGS='-g'
