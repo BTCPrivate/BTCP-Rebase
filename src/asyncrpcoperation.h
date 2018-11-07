@@ -18,11 +18,13 @@
 
 #include <univalue.h>
 
+#include <wallet/wallet.h>
+
 using namespace std;
 
 /**
  * AsyncRPCOperation objects are submitted to the AsyncRPCQueue for processing.
- * 
+ *
  * To subclass AsyncRPCOperation, implement the main() method.
  * Update the operation status as work is underway and completes.
  * If main() can be interrupted, implement the cancel() method.
@@ -40,7 +42,7 @@ typedef enum class operationStateEnum {
 
 class AsyncRPCOperation {
 public:
-    AsyncRPCOperation();
+    AsyncRPCOperation(std::shared_ptr<CWallet> const wallet = nullptr);
     virtual ~AsyncRPCOperation();
 
     // You must implement this method in your subclass.
@@ -115,7 +117,10 @@ protected:
     int error_code_;
     std::string error_message_;
     std::atomic<OperationStatus> state_;
-    std::chrono::time_point<std::chrono::system_clock> start_time_, end_time_;  
+    std::chrono::time_point<std::chrono::system_clock> start_time_, end_time_;
+
+    // Wallet of interest for this operation
+    std::shared_ptr<CWallet> m_pwallet;
 
     void start_execution_clock();
     void stop_execution_clock();
@@ -142,8 +147,8 @@ protected:
 private:
 
     // Derived classes should write their own copy constructor and assignment operators
-    AsyncRPCOperation(const AsyncRPCOperation& orig);
-    AsyncRPCOperation& operator=( const AsyncRPCOperation& other );
+    AsyncRPCOperation(const AsyncRPCOperation& orig) = delete;
+    AsyncRPCOperation& operator=(const AsyncRPCOperation& other) = delete;
 
     // Initialized in the operation constructor, never to be modified again.
     AsyncRPCOperationId id_;

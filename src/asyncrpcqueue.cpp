@@ -10,7 +10,7 @@ static std::atomic<size_t> workerCounter(0);
  * Static method to return the shared/default queue.
  */
 shared_ptr<AsyncRPCQueue> AsyncRPCQueue::sharedInstance() {
-    // Thread-safe in C+11 and gcc 4.3
+    // Thread-safe in C++11 and gcc 4.3
     static shared_ptr<AsyncRPCQueue> q = std::make_shared<AsyncRPCQueue>();
     return q;
 }
@@ -56,7 +56,7 @@ void AsyncRPCQueue::run(size_t workerId) {
             // Search operation map
             AsyncRPCOperationMap::const_iterator iter = operation_map_.find(key);
             if (iter != operation_map_.end()) {
-                operation = iter->second;
+                operation = std::move(iter->second);
             }
         }
 
@@ -104,7 +104,7 @@ std::shared_ptr<AsyncRPCOperation> AsyncRPCQueue::getOperationForId(AsyncRPCOper
     std::lock_guard<std::mutex> guard(lock_);
     AsyncRPCOperationMap::const_iterator iter = operation_map_.find(id);
     if (iter != operation_map_.end()) {
-        ptr = iter->second;
+        ptr = std::move(iter->second);
     }
     return ptr;
 }
@@ -176,7 +176,7 @@ size_t AsyncRPCQueue::getOperationCount() const {
  */
 void AsyncRPCQueue::addWorker() {
     std::lock_guard<std::mutex> guard(lock_);
-    workers_.emplace_back( std::thread(&AsyncRPCQueue::run, this, ++workerCounter) );
+    workers_.emplace_back(std::thread(&AsyncRPCQueue::run, this, ++workerCounter));
 }
 
 /**
@@ -193,7 +193,7 @@ size_t AsyncRPCQueue::getNumberOfWorkers() const {
 std::vector<AsyncRPCOperationId> AsyncRPCQueue::getAllOperationIds() const {
     std::lock_guard<std::mutex> guard(lock_);
     std::vector<AsyncRPCOperationId> v;
-    for(auto & entry: operation_map_) {
+    for (auto & entry : operation_map_) {
         v.push_back(entry.first);
     }
     return v;
