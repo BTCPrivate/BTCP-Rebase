@@ -1,16 +1,16 @@
 Bitcoin Private Rebase
 =====================================
 
-IN DEVELOPMENT - FOR TESTING ONLY - DO NOT USE IN PRODUCTION
+IN DEVELOPMENT - FOR TESTING PURPOSES ONLY - DO NOT USE - IN PRODUCTION
 ===========
-This is currently in development software, not all consensus rules have been implemented. **You should NOT rely on this in production yet**, for production use cases please use https://github.com/BTCPrivate/BitcoinPrivate/
+This is currently in development phase, not all consensus rules have been implemented. **You should NOT rely on this in-production yet.** For production use cases, please use https://github.com/BTCPrivate/BitcoinPrivate/
 
 Development Status
 ------
 [![Build Status](https://travis-ci.com/BTCPrivate/BTCP-Rebase.svg?branch=master)](https://travis-ci.com/BTCPrivate/BTCP-Rebase)
 
-This Bitcoin Private cryptocurrency daemon and cli tools should build on linux and sync the full BTCP mainnet chain.
-Z addresses, wallet code, and tests are not fully working yet and should be considered unstable.
+This Bitcoin Private daemon and cli tools should build on Linux and sync the full BTCP mainnet chain.
+Z addresses, wallet code and tests are not fully working yet, and should be considered unstable.
 
 Build Instructions
 -------
@@ -36,7 +36,7 @@ cd ..
 make
 ```
 
-This will build all the dependencies and bootstrap a linux build. There are several options you can use:
+This will build all the dependencies and bootstrap a Linux build. There are several options you can use:
 - `--disable-wallet`
 - `--without-gui`
 - `--help`
@@ -64,9 +64,9 @@ Then, run `scripts/build-mac.sh` to compile.
 What is the Bitcoin Private Rebase?
 ----------------
 
-Bitcoin Private is currently based primarily on the Zcash codebase, which itself is a snapshot of Bitcoin dating to mid-2015. Most z protocol coins all rely on this same code, which is now missing roughly 3 years of blockchain upgrades that have been integrated into Bitcoin. Based on the structure of Zcash, and because there’s now a 3 year code divergence, integrating blockchain upgrades developed in bitcoin core into any z protocol coin has become increasingly cumbersome.
+Bitcoin Private is currently based primarily on the Zcash codebase, which itself is a snapshot of Bitcoin dating back to mid-2015. Most z protocol coins all rely on this same codebase, which is now missing over 3 years worth of blockchain upgrades that have been implemented into Bitcoin. Based on the structure of Zcash, and because there’s now a 3 year code divergence, integrating blockchain upgrades developed in Bitcoin Core into any z protocol coin has become increasingly cumbersome.
 
-We endeavor a complete refactoring of Bitcoin Private to allow for more facile incorporation of Bitcoin upstream changes. This release will coincide with activation of full SegWit support, giving the BTCP more scale both on chain as well as enabling off-chain protocols such as the lightning network and cross-chain swaps. Additionally, it will bring another 3 years of upgrades to the core node including stability and speed improvements as well as a number of usability enhancements to the reference wallet including support for hierarchical deterministic wallets (for shielded and transparent addresses) and wallet encryption.
+We endeavor a complete refactoring of Bitcoin Private to allow for more facile incorporation of Bitcoin upstream changes. This release will coincide with the activation of full SegWit support, giving Bitcoin Private more scalability both on-chain as well as enabling off-chain protocols such as the Lightning Network and cross-chain swaps. Additionally, it will bring another 3 years worth of upgrades to the core node, including stability and speed improvements, usability enhancements to the reference wallet including support for hierarchical deterministic wallets (for shielded and transparent addresses) and wallet encryption.
 
 Learn more about the rebase at https://btcprivate.org/roadmap.
 
